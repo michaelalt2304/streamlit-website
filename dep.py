@@ -508,7 +508,6 @@ def download_weight(path, ver): # one of ['n', 's', 'm', 'b', 'x', 'l']
         
         if not os.path.exists(computer_path):
             wget.download(web_path, out = path)
-        # os.remove(fname)
         return computer_path
 
 def get_roboflow(user):
@@ -529,10 +528,8 @@ def add_model(roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Fil
 
     download_roboflow(res['Api_Key'], res['Workspace'], res['Project'], res['Version'], res['Download'], res['Local_Path'])
     
-    pt = os.path.join(os.getcwd(), res['Local_Path'][len('./'):], 'data.yaml')
+    pt = os.path.join(os.getcwd(), res['Local_Path'], 'data.yaml')
 
-
-    
     samp_photo = os.path.join(res['Local_Path'], 'test', 'images')
     first_photo = os.listdir(samp_photo)[0]
     im = Image.open(os.path.join(samp_photo, first_photo))
@@ -562,7 +559,7 @@ def add_model(roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Fil
     
     cur.execute(f"UPDATE models SET Filepath = '{model_path_g}', Local_Path = '{pts_save_path}' WHERE ID = {id_mod};")
 
-    # delete_folder('runs')
+    delete_folder('runs')
     return id_mod
 
 
@@ -587,11 +584,6 @@ def generate_random_string(length):
   letters = string.ascii_letters + string.digits
   result_str = ''.join(random.choice(letters) for i in range(length))
   return result_str
-
-
-
-# SOME_VIDEO_PATH = "/mnt/linuxlab/home/mstaus1/Desktop/Shellfish_project_2024/Jupyter_local_code/GOPR1077_tr.mp4"
-# id_raw_video = add_video(cur_name, SOME_VIDEO_PATH, notes='')
 
 def get_type_file(ID):
     st.write(ID)

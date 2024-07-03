@@ -18,3 +18,4 @@ dependencies:
  - protobuf=3.20.1
  - mysqlclient=2.2.4
  - SQLAlchemy=2.0.30
+ - "cloud-sql-python-connector[pymysql]"

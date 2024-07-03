@@ -22,6 +22,11 @@ import streamlit as st
 import io
 import string
 import random
+from google.cloud.sql.connector import Connector, IPTypes
+import pymysql
+import sqlalchemy
+from sqlalchemy.sql import text
+
 
 temp_folder = os.path.join('.', 'Files_local')
 temp_weights = os.path.join(temp_folder, 'Weights')
@@ -33,16 +38,73 @@ db_main = 'test_4'
 # cur_name = 'ab'
 REPLACE = 'REPLACE'
 
-sql_conn = pymysql.connect(
-    user="root",
-    password="dbuserdbuser",
-    host="localhost",
-    port=st.session_state.PORT_NUMBER,
-    database=db_main,
-    cursorclass=pymysql.cursors.DictCursor,
-    autocommit=True)
-cur = sql_conn.cursor()
+def connect_with_connector() -> sqlalchemy.engine.base.Engine:
+    """
+    Initializes a connection pool for a Cloud SQL instance of MySQL.
 
+    Uses the Cloud SQL Python Connector package.
+    """
+    # Note: Saving credentials in environment variables is convenient, but not
+    # secure - consider a more secure solution such as
+    # Cloud Secret Manager (https://cloud.google.com/secret-manager) to help
+    # keep secrets safe.
+
+    instance_connection_name = "molten-album-427115-q6:us-central1:oyster1"  # e.g. 'project:region:instance'
+    db_user = 'root'  # e.g. 'my-db-user'
+    db_pass = 'dbuserdbuser'  # e.g. 'my-db-password'
+    db_name = 'test_4'  # e.g. 'my-database'
+
+    ip_type = IPTypes.PUBLIC
+
+    connector = Connector(ip_type)
+
+    def getconn() -> pymysql.connections.Connection:
+        conn: pymysql.connections.Connection = connector.connect(
+            instance_connection_name,
+            "pymysql",
+            user=db_user,
+            password=db_pass,
+            db=db_name,
+        )
+        return conn
+
+    pool = sqlalchemy.create_engine(
+        "mysql+pymysql://",
+        creator=getconn,
+        # ...
+    )
+    return pool
+en = connect_with_connector()
+
+def run_sql(prompt: str, write = False):
+    if write:
+        st.write(prompt)
+    with en.connect() as con:
+        res = con.execute(text(prompt))
+        
+        if prompt.lower().find('select') == 0: # is a select statement            
+            colnames_arr = list(res.keys())
+            res_ls = [row for row in res]      
+            pretty_dict = [ {colnames_arr[i] : res_ls[j][i] for i in range(len(colnames_arr))} for j in range(len(res_ls)) ]
+            return pretty_dict
+        else:
+            con.commit()
+
+# sql_conn = pymysql.connect(
+#     user="root",
+#     password="dbuserdbuser",
+#     host="34.46.242.196",
+#     port=st.session_state.PORT_NUMBER,
+#     database=db_main,
+#     cursorclass=pymysql.cursors.DictCursor,
+#     autocommit=True)
+# cur = sql_conn.cursor()
+
+# conn = st.connection('mysql', type='sql')
+
+# df = conn.query('SELECT Filepath from test_4.raw_files;', ttl=600)
+
+# print(df)
 
 ###########################
 # GOOGLE HELPER FUNCTIONS #
@@ -57,7 +119,7 @@ def sign_in_storage_g(path_to_cred = '', JSON_file = 'molten-album-427115-q6-cfa
     print("Connected to google cloud")
     return bkt, client
 
-b, cl = sign_in_storage_g(path_to_cred='../sql/')
+b, cl = sign_in_storage_g()
 
 def check_folder_exists_g(folder_to_upload, check_location, disable = False, full = False, bkt = b): # assume full installation
     # assumes if one file is in the right location then they all are
@@ -155,14 +217,14 @@ def get_id_fname(f_out, fpath, id):
     return os.path.join(f_out, f"{fname[:per_index]}-{id}.{ext}").replace('\\', '/')
 
 def get_REPLACE_ID(table, column_rep):
-    cur.execute(f"""SELECT ID from {table} where {column_rep} = '{REPLACE}'""")
-    id = cur.fetchall()[-1]['ID']
+    res = run_sql(f"""SELECT ID from {table} where {column_rep} = '{REPLACE}'""")
+    # st.write(res, table, column_rep)
+    id = res[-1]['ID']
     return id
 
 def get_match(pattern, string):
     matches = re.search(pattern, string)
     if matches:
-        # print(matches.group(1))
         return(matches.group(1))
     else:
         raise ValueError(f'Improper string exported, couldn\'t find {pattern} in the given text')
@@ -209,32 +271,41 @@ make_folder(temp_folder)
 ###########################
 # SQL/Database Management #
 ###########################
+def insert_user(name, password):
+    run_sql(f"INSERT INTO people (Username, Password, Time_Created) VALUES ('{name}', '{password}', CURRENT_TIMESTAMP );")
+    st.write('Account created!')
+    return name
 
 def add_user(name, password, new_user):
     '''
     Returns: name if query is successful, False if not
     '''
-    if new_user:
-        try:
-            cur.execute(f"INSERT INTO people (Username, Password, Time_Created) VALUES ('{name}', '{password}', CURRENT_TIMESTAMP );")
-        except IntegrityError:
-            st.write(f"Duplicate User with {name}. Please try a different username.")
-            return False
-        st.write("New account created!")
-        return name
-    else:
-        cur.execute(f"SELECT Username, Password FROM people WHERE Username = '{name}'")
-        res = cur.fetchall()
-        # print(res)
-        if not res:
+    if not password:
+        return False
+    res = run_sql(f"SELECT Username, Password FROM people WHERE Username = '{name}'")
+    # st.write(res)
+    if res:
+        res_val = res[-1]
+        if new_user:
+            if res_val['Password'] == password:
+                st.write('Signed in!')
+                return name
+            else:
+                st.write('User with this name already exists.')
+                return False
+        else:
+            if res_val['Password'] == password:
+                st.write('Signed in!')
+                return name
+            else:
+                st.write('Wrong password. Please try again.')
+                return False
+    elif not res:
+        if not new_user:
             st.write(f"User is not in database. Please make a new account.")
             return False
-        elif res[-1]['Password'] != password:
-            st.write(f"Wrong password. Please try again.")
-            return False
         else:
-            st.write("Signed in!")
-            return name
+            return insert_user(name, password)
 
 
 def add_photo(user, im, filename, notes = '', f_out = 'Files/Image_raw'):
@@ -250,7 +321,7 @@ def add_photo(user, im, filename, notes = '', f_out = 'Files/Image_raw'):
     fsize = os.stat(f_temp).st_size
     ext = get_ext(f_temp)
     
-    cur.execute(f"INSERT INTO raw_files (Username, Filepath, Filename, Local_Path, Size, Type, Extension, Notes, Width, Height, Timestamp) VALUES ('{user}', '{REPLACE}', '{REPLACE}', '{REPLACE}', {fsize}, 'Image', '{ext}', '{notes}', {width}, {height}, CURRENT_TIMESTAMP);")
+    run_sql(f"INSERT INTO raw_files (Username, Filepath, Filename, Local_Path, Size, Type, Extension, Notes, Width, Height, Timestamp) VALUES ('{user}', '{REPLACE}', '{REPLACE}', '{REPLACE}', {fsize}, 'Image', '{ext}', '{notes}', {width}, {height}, CURRENT_TIMESTAMP);")
     id = get_REPLACE_ID(table='raw_files', column_rep='Filepath')
 
     f_id_name_g = get_id_fname(f_out, f_temp, id)
@@ -258,23 +329,22 @@ def add_photo(user, im, filename, notes = '', f_out = 'Files/Image_raw'):
     fname = get_filename(temp_fname)
     # print(temp_fname)
     upload_file_g(f_temp, f_id_name_g)
-    cur.execute(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_fname}', Filename = '{fname}' WHERE ID = {id};")
+    run_sql(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_fname}', Filename = '{fname}' WHERE ID = {id};")
     # print(f"\n\n\n\n'{user}', '{f_id_name_g}', '{temp_fname}', {fsize}, 'Image', '{ext}', '{notes}', {width}, {height}")
     return id
 
 def get_files(user):
-    cur.execute(f"SELECT Filepath, Filename, ID FROM raw_files WHERE Username = '{user}';")
-    res = cur.fetchall()
+    res = run_sql(f"SELECT Filepath, Filename, ID FROM raw_files WHERE Username = '{user}';")
     keys = [row['Filename'] for row in res]
     values = [row['ID'] for row in res]
     return keys, values
 
 
 def get_models(name):
-    cur.execute(f"SELECT * FROM roboflow INNER JOIN models ON roboflow.ID = models.Roboflow_ID WHERE username = '{name}' AND models.Local_Path != '{REPLACE}';")
-    res = cur.fetchall()
-    mod_names_keys = [f"{row['Model_Type']}v{row['models.Version']} {row['Width_Training_Images']}x{row['Height_Training_Images']} with {row['Workspace']} {row['Timestamp']}" for row in res]
-    all_mods_values = [row['models.ID'] for row in res]
+    res = run_sql(f"SELECT * FROM roboflow INNER JOIN models ON roboflow.ID = models.Roboflow_ID WHERE username = '{name}' AND models.Local_Path != '{REPLACE}';")
+    # st.write(res)
+    mod_names_keys = [f"{row['Model_Type']}v{row['Version']} {row['Width_Training_Images']}x{row['Height_Training_Images']} with {row['Workspace']} {row['Timestamp']}" for row in res]
+    all_mods_values = [row['ID'] for row in res]
 
     return mod_names_keys, all_mods_values
 
@@ -301,8 +371,8 @@ def ann_img_helper(im: Image, model, label_annotator = la, bounding_box_annotato
     return(annotated_image, num_oysters, tot_time, detections)
 
 def get_model(id: int):
-    cur.execute(f"SELECT Filepath, Local_Path FROM models WHERE ID = {id}")
-    cur_model = cur.fetchall()[-1]
+    
+    cur_model = run_sql(f"SELECT Filepath, Local_Path FROM models WHERE ID = {id}")[-1]
     download_file_g(cur_model['Filepath'], cur_model['Local_Path'])
     try:
         model = YOLOv10(cur_model['Local_Path'])
@@ -312,10 +382,10 @@ def get_model(id: int):
         st.write('Getting model failed')
 
 def get_raw_fpath(id: int) -> str:
-    cur.execute(f"SELECT Filepath, Local_Path FROM raw_files WHERE ID = {id}")
-    cur_file = cur.fetchall()[-1]
+    
+    cur_file = run_sql(f"SELECT Filepath, Local_Path FROM raw_files WHERE ID = {id}")[-1]
     download_file_g(cur_file['Filepath'], cur_file['Local_Path'])
-    return cur_file['Filepath']
+    return cur_file['Local_Path']
 
 
 def get_raw_image(id: int) -> Image:
@@ -325,8 +395,8 @@ def get_raw_image(id: int) -> Image:
 
 
 def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_ann'):
-    cur.execute(f"SELECT * from annotated_files WHERE Model_ID = {Model_ID} AND Raw_File_ID = {Raw_File_ID} AND Confidence_Threshold = {threshold}")
-    res = cur.fetchall()
+    
+    res = run_sql(f"SELECT * from annotated_files WHERE Model_ID = {Model_ID} AND Raw_File_ID = {Raw_File_ID} AND Confidence_Threshold = {threshold}")
     if res:
         st.write('Image Already Annotated')
         return res[-1]['ID']
@@ -336,7 +406,7 @@ def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_a
     raw_filepath = get_raw_fpath(Raw_File_ID)
 
     annot, num_oysters, tot_time, end_ann_data = ann_img_helper(im, model, conf_level = threshold / 100)
-    cur.execute(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Confidence_Threshold, Filepath, Time_to_Annotate, Notes, Timestamp) VALUES ('{Raw_File_ID}', '{Model_ID}', {threshold}, '{REPLACE}', '{tot_time}', '{notes}', CURRENT_TIMESTAMP);")
+    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Confidence_Threshold, Filepath, Time_to_Annotate, Notes, Timestamp) VALUES ('{Raw_File_ID}', '{Model_ID}', {threshold}, '{REPLACE}', '{tot_time}', '{notes}', CURRENT_TIMESTAMP);")
     id = get_REPLACE_ID(table='annotated_files', column_rep='Filepath')
     f_id_name_g = get_id_fname(f_out, raw_filepath, id)
     f_local = get_temp_fname(f_id_name_g)
@@ -350,8 +420,8 @@ def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_a
     upload_file_g(f_local, f_id_name_g)
 
 
-    cur.execute(f"UPDATE annotated_files SET Filepath = '{f_id_name_g}', Local_Path = '{f_local}' WHERE ID = {id};")
-    cur.execute(f"INSERT INTO annotated_photos (ID, Number_of_Oysters) VALUES ({id}, {num_oysters})")
+    run_sql(f"UPDATE annotated_files SET Filepath = '{f_id_name_g}', Local_Path = '{f_local}' WHERE ID = {id};")
+    run_sql(f"INSERT INTO annotated_photos (Ann_File_ID, Number_of_Oysters) VALUES ({id}, {num_oysters})")
 
     # coord = end_ann_data.xyxy
     # conf = end_ann_data.confidence
@@ -365,8 +435,7 @@ def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_a
 # ann_img(66, 28)
 
 def ann_video(Raw_File_ID, Model_ID, notes = '', f_out = 'Files/Video_ann', threshold = 30):
-    cur.execute(f"SELECT * from annotated_files WHERE Model_ID = {Model_ID} AND Raw_File_ID = {Raw_File_ID} AND Confidence_Threshold = {threshold}")
-    res = cur.fetchall()
+    res = run_sql(f"SELECT * from annotated_files WHERE Model_ID = {Model_ID} AND Raw_File_ID = {Raw_File_ID} AND Confidence_Threshold = {threshold}")
     if res:
         st.write('Video already annotated')
         return res[-1]['ID']
@@ -378,7 +447,7 @@ def ann_video(Raw_File_ID, Model_ID, notes = '', f_out = 'Files/Video_ann', thre
 
     avg_oysters, time_s, out_path, ann_rate = ann_video_helper(raw_filepath, model, out_location = temp_folder, conf_level = threshold / 100)
 
-    cur.execute(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Filepath, Time_to_Annotate, Notes, Confidence_Threshold, Timestamp, Local_Path) VALUES ('{Raw_File_ID}', '{Model_ID}', '{REPLACE}', '{time_s * 1000}', '{notes}', {threshold}, CURRENT_TIMESTAMP, '{REPLACE}');")
+    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Filepath, Time_to_Annotate, Notes, Confidence_Threshold, Timestamp, Local_Path) VALUES ('{Raw_File_ID}', '{Model_ID}', '{REPLACE}', '{time_s * 1000}', '{notes}', {threshold}, CURRENT_TIMESTAMP, '{REPLACE}');")
 
     id = get_REPLACE_ID(table='annotated_files', column_rep='Filepath')
 
@@ -388,9 +457,9 @@ def ann_video(Raw_File_ID, Model_ID, notes = '', f_out = 'Files/Video_ann', thre
     
     os.rename(out_path, f_local)
 
-    cur.execute(f"UPDATE annotated_files SET Filepath = '{f_id_name_g}', Local_Path = '{f_local}' WHERE ID = {id};")
+    run_sql(f"UPDATE annotated_files SET Filepath = '{f_id_name_g}', Local_Path = '{f_local}' WHERE ID = {id};")
 
-    cur.execute(f"INSERT INTO annotated_videos (ID, Annotation_Rate, Tracing, Average_Number_of_Oysters) VALUES ({id}, {ann_rate}, 0, {avg_oysters})")
+    run_sql(f"INSERT INTO annotated_videos (ID, Annotation_Rate, Tracing, Average_Number_of_Oysters) VALUES ({id}, {ann_rate}, 0, {avg_oysters})")
 
     upload_file_g(f_local, f_id_name_g)
     
@@ -407,7 +476,7 @@ def add_video(name, fpath, fname, notes = '', f_out = 'Files/Video_raw'):
     fsize = os.stat(fpath).st_size
     ext = get_ext(fpath)
         
-    cur.execute(f"INSERT INTO raw_files (Username, Filepath, Filename, Local_Path, Size, Type, Extension, Notes, Width, Height, Timestamp) VALUES ('{name}', '{REPLACE}', '{REPLACE}', '{REPLACE}', {fsize}, 'Video', '{ext}', '{notes}', {width}, {height}, CURRENT_TIMESTAMP);")
+    run_sql(f"INSERT INTO raw_files (Username, Filepath, Filename, Local_Path, Size, Type, Extension, Notes, Width, Height, Timestamp) VALUES ('{name}', '{REPLACE}', '{REPLACE}', '{REPLACE}', {fsize}, 'Video', '{ext}', '{notes}', {width}, {height}, CURRENT_TIMESTAMP);")
     id = get_REPLACE_ID(table='raw_files', column_rep='Filepath')
     f_id_name_g = get_id_fname(f_out, fname, id)
     # print(f_id_name_g)
@@ -418,7 +487,7 @@ def add_video(name, fpath, fname, notes = '', f_out = 'Files/Video_raw'):
     os.rename(fpath, temp_path)
 
     fname = get_filename(temp_path)
-    cur.execute(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_path}', Filename = '{fname}' WHERE ID = {id};")
+    run_sql(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_path}', Filename = '{fname}' WHERE ID = {id};")
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     color_order = 'RGB' # FIXME - cant figure out how to extract from cv2 object
@@ -432,8 +501,7 @@ def add_video(name, fpath, fname, notes = '', f_out = 'Files/Video_raw'):
 
 
 def get_fpath_ann(ann_id):
-    cur.execute(f"SELECT Local_Path, Filepath from annotated_files WHERE ID = {ann_id}")
-    res = cur.fetchall()[-1]
+    res = run_sql(f"SELECT Local_Path, Filepath from annotated_files WHERE ID = {ann_id}")[-1]
     download_file_g(res['Filepath'], res['Local_Path'])
     return res['Local_Path']
 # ann_photo_id = ann_img(id_raw_photo, id_mod)
@@ -486,11 +554,11 @@ def add_roboflow(name, export_string, f_out = 'Files/Roboflow', f_weights = "Fil
     
     upload_folder_g(f_temp, folder_g)
     
-    cur.execute(f"INSERT INTO roboflow (Api_Key, Workspace, Project, Version, Download, Local_Path, Username, Timestamp) VALUES ('{REPLACE}', '{workspace_lab}', '{project_lab}', '{version_lab}', '{download_lab}', '{f_temp}', '{name}', CURRENT_TIMESTAMP);")
+    run_sql(f"INSERT INTO roboflow (Api_Key, Workspace, Project, Version, Download, Local_Path, Username, Timestamp) VALUES ('{REPLACE}', '{workspace_lab}', '{project_lab}', '{version_lab}', '{download_lab}', '{f_temp}', '{name}', CURRENT_TIMESTAMP);")
     
     id = get_REPLACE_ID(table='roboflow', column_rep='Api_Key')
     
-    cur.execute(f"UPDATE roboflow SET Api_Key = '{api_key_lab}' WHERE ID = {id};")
+    run_sql(f"UPDATE roboflow SET Api_Key = '{api_key_lab}' WHERE ID = {id};")
     
     st.write("All done!")
     return id
@@ -511,8 +579,7 @@ def download_weight(path, ver): # one of ['n', 's', 'm', 'b', 'x', 'l']
         return computer_path
 
 def get_roboflow(user):
-    cur.execute(f"SELECT ID, Project, Workspace, Version FROM roboflow WHERE Username = '{user}'")
-    res = cur.fetchall()
+    res = run_sql(f"SELECT ID, Project, Workspace, Version FROM roboflow WHERE Username = '{user}'")
 
     return [f"{row['Workspace']}, {row['Project']} v{row['Version']} ({row['ID']})" for row in res], [row['ID'] for row in res]
 
@@ -522,8 +589,8 @@ def add_model(roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Fil
     weights_path = download_weight(temp_folder, size_mod)
     
     
-    cur.execute(f"SELECT * FROM roboflow WHERE ID = {roboflow_ID}")
-    res = cur.fetchall()[-1]
+   
+    res = run_sql(f"SELECT * FROM roboflow WHERE ID = {roboflow_ID}")[-1]
     print(res)
 
     download_roboflow(res['Api_Key'], res['Workspace'], res['Project'], res['Version'], res['Download'], res['Local_Path'])
@@ -536,7 +603,7 @@ def add_model(roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Fil
     width = im.size[0]
     height = im.size[1]
                                                                
-    cur.execute(f"""INSERT INTO models (Timestamp, Filepath, Local_Path, Version, 
+    run_sql(f"""INSERT INTO models (Timestamp, Filepath, Local_Path, Version, 
                  Hyperparams, Epoch, Batch, Model_Type, Width_Training_Images, Height_Training_Images, 
                  Size, Roboflow_ID) values (CURRENT_TIMESTAMP, '{REPLACE}', '{REPLACE}', 10, NULL, {epochs}, {batch}, 
                  'YOLO', {width}, {height}, '{size_mod}', {roboflow_ID})
@@ -557,7 +624,7 @@ def add_model(roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Fil
     upload_file_g(orig_pts_path, model_path_g)
     os.rename(orig_pts_path, pts_save_path) # for later inference, on computer because people will likely want the model then
     
-    cur.execute(f"UPDATE models SET Filepath = '{model_path_g}', Local_Path = '{pts_save_path}' WHERE ID = {id_mod};")
+    run_sql(f"UPDATE models SET Filepath = '{model_path_g}', Local_Path = '{pts_save_path}' WHERE ID = {id_mod};")
 
     delete_folder('runs')
     return id_mod
@@ -586,9 +653,8 @@ def generate_random_string(length):
   return result_str
 
 def get_type_file(ID):
-    st.write(ID)
-    cur.execute(f"SELECT Type FROM raw_files WHERE ID = {ID}")
-    res = cur.fetchall()[-1]
+    # st.write(ID)
+    res = run_sql(f"SELECT Type FROM raw_files WHERE ID = {ID}")[-1]
     return res['Type']
 
 def ann_video_helper(input_vid, model, conf_level, out_location = '.', im_width = 416, im_height = 416):

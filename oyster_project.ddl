@@ -100,12 +100,11 @@ create table annotated_photos
 
 create table annotated_videos
 (
-    Ann_File_ID               int        not null
-        primary key,
+    Ann_File_ID               int        not null,
     Annotation_Rate           float      null,
     Tracing                   tinyint(1) null,
     Average_Number_of_Oysters float      not null,
-    constraint annotated_videos_annotated_files_Ann_File_ID_fk
+    constraint annotated_videos_annotated_files_ID_fk
         foreign key (Ann_File_ID) references annotated_files (ID)
 );
 
@@ -135,3 +134,4 @@ create table videos
     constraint videos_raw_files_Raw_File_ID_fk
         foreign key (Raw_File_ID) references raw_files (ID)
 );
+

@@ -495,7 +495,7 @@ def ann_video(Raw_File_ID, Model_ID, notes = '', f_out = 'Files/Video_ann', thre
 
     run_sql(f"UPDATE annotated_files SET Filepath = '{f_id_name_g}', Local_Path = '{f_local}' WHERE ID = {id};")
 
-    run_sql(f"INSERT INTO annotated_videos (ID, Annotation_Rate, Tracing, Average_Number_of_Oysters) VALUES ({id}, {ann_rate}, 0, {avg_oysters})")
+    run_sql(f"INSERT INTO annotated_videos (Ann_File_ID, Annotation_Rate, Tracing, Average_Number_of_Oysters) VALUES ({id}, {ann_rate}, 0, {avg_oysters})")
 
     upload_file_g(f_local, f_id_name_g)
     

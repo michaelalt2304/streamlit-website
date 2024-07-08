@@ -6,7 +6,7 @@ from dep import *
 # frame = Fr()
 st.title("Webcam Live Feed")
 st.write("User:", st.session_state.user)
-models = get_models(st.session_state.user, public_user = False)
+models = get_models(st.session_state.user)
 if models:
     cur_model = kv_select(models, 'What model would you like to annotate with?', reverse=True)
     val = st.button('Start the webcam')

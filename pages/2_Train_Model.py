@@ -2,7 +2,7 @@ from dep import *
 
 st.write("User:", st.session_state.user)
 
-roboflow_IDs = get_roboflow(st.session_state.user, public_user = False)
+roboflow_IDs = get_roboflow(st.session_state.user)
 # print(roboflow_IDs)
 if roboflow_IDs:
     MODEL_SIZE_ARRAY = ['n', 's', 'm', 'b', 'l', 'x']
@@ -14,7 +14,8 @@ if roboflow_IDs:
 
     epoch_st = st.slider('Epochs', min_value=1, max_value=20, value=2, step=1) #FIXME - Default should be higher, low for testing
     batch_st = st.select_slider('Batch Size', options = [2**i for i in range(0, 4 + 1)], value = 8)
+    notes = st.text_input("(Optional) Add notes about this model to better identify it:", max_chars=NOTES_SIZE_LIMIT)
     val = st.button(label="Train")
     if val:
-        id_model = add_model(roboflow_ID, size_mod = model_size, epochs = epoch_st, batch = batch_st)
+        id_model = add_model(roboflow_ID, size_mod = model_size, epochs = epoch_st, batch = batch_st, notes = notes)
         st.write(f"Added model with ID {id_model}")

@@ -1,19 +1,9 @@
 from dep import *
 
-
-
-
-# if 'user' not in st.session_state:
-#     print("Lost variable")
-#     st.session_state['user'] = 'a'
-
 st.write("User:", st.session_state.user)
 
-# st.write("Upload files here")
-
-# st.write("User:", st.session_state.user)
-
 uploaded_file = st.file_uploader("Choose a file")
+notes = st.text_input("(Optional) Add notes about this file to better identify it:", max_chars=NOTES_SIZE_LIMIT)
 if uploaded_file is not None:
     # To read file as bytes:
     split_type = uploaded_file.type.rsplit('/')
@@ -27,7 +17,7 @@ if uploaded_file is not None:
 
         # img.show()
         st.image(img, caption = "Uploaded image")
-        raw_photo_id = add_photo(st.session_state.user, img, fname)
+        raw_photo_id = add_photo(st.session_state.user, img, fname, notes = notes)
         st.write(f"Added photo with ID = {raw_photo_id}")
     elif type_file == 'video':
         # st.write("Here")
@@ -38,7 +28,7 @@ if uploaded_file is not None:
             with open(fpath, 'wb') as f:
                 f.write(vid_data.getbuffer())
             st.video(fpath)
-            id_vid = add_video(st.session_state.user, fpath, fname)
+            id_vid = add_video(st.session_state.user, fpath, fname, notes = notes)
         st.write(f"Added video with ID = {id_vid}")
         
 

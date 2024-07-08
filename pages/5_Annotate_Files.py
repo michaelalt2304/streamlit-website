@@ -11,24 +11,23 @@ if all_user_files:
     st.write(f_type)
     cur_model = kv_select(get_models(st.session_state.user), 'What model would you like to annotate with?', reverse=True)
     st.write('You selected:', cur_model)
+    name_labels = kv_select([['Names', 'Confidence Scores'], [True, False]], 'What would you like to see on the annotations?')
     threshold = st.slider('Minimum Confidence Score (%)', min_value=5, max_value=50, value=20, step=5)
+
+
     val = st.button(label="Annotate")
     if val:
-        if f_type == 'Image':
-            id_ann_img = ann_img(cur_file, cur_model, threshold = threshold)
-            fpath_ann = get_fpath_ann(id_ann_img)
-            im = Image.open(fpath_ann)
-            st.image(im)
-        elif f_type == 'Video':
-            id_ann_vid = ann_video(cur_file, cur_model, threshold = threshold)
-            fpath_ann = get_fpath_ann(id_ann_vid)
-            st.video(fpath_ann)
-        
-
-    
-
-    
-    
+        with st.spinner('Annotating...'):
+            if f_type == 'Image':
+                id_ann_img = ann_img(cur_file, cur_model, threshold = threshold, name_labels = name_labels)
+                fpath_ann = get_fpath_ann(id_ann_img)
+                im = Image.open(fpath_ann)
+                st.image(im)
+            elif f_type == 'Video':
+                id_ann_vid = ann_video(cur_file, cur_model, threshold = threshold, name_labels = name_labels)
+                fpath_ann = get_fpath_ann(id_ann_vid)
+                st.video(fpath_ann)
+            
 
  
 else:

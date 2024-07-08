@@ -31,8 +31,7 @@ from sqlalchemy.sql import text
 temp_folder = os.path.join('.', 'Files_local')
 temp_weights = os.path.join(temp_folder, 'Weights')
 
-bba = sv.BoxCornerAnnotator()
-la = sv.LabelAnnotator(text_scale = 0.4, text_padding = 1)
+
 
 db_main = 'test_4'
 # cur_name = 'ab'
@@ -281,7 +280,6 @@ if not path_exists_g('Files/'):
     make_folder_g('Files/Image_raw')
     make_folder_g('Files/Image_ann')
     make_folder_g('Files/Model')
-    make_folder_g('Files/Roboflow')
 make_folder(temp_folder)
 
 ###########################
@@ -363,7 +361,7 @@ def get_models(name):
 
     return mod_names_keys, all_mods_values
 
-def ann_img_helper(im: Image, model, label_annotator = la, bounding_box_annotator = bba, verbose = False, conf_level = 0.05, name_labels = False) -> np.ndarray:
+def ann_img_helper(im: Image, model, label_annotator = sv.LabelAnnotator(text_scale = 0.4, text_padding = 1), bounding_box_annotator = sv.BoxCornerAnnotator(), verbose = False, conf_level = 0.05, name_labels = True) -> np.ndarray:
     fix_img = im.convert('RGB')
     np_img = np.array(fix_img)
     cont_img = np.asarray(np_img, dtype=np.uint8)
@@ -381,10 +379,10 @@ def ann_img_helper(im: Image, model, label_annotator = la, bounding_box_annotato
         scene=np_img, detections=detections)
     num_oysters = detections.xyxy.shape[0]
     annotated_image = label_annotator.annotate(
-        scene=annotated_image, detections=detections, labels = used_labels)
+        scene=annotated_image, detections=detections, labels = used_labels if not name_labels else None)
     return(annotated_image, num_oysters, tot_time, detections)
 
-def ann_video_helper(input_vid, model, conf_level, out_location = '.', im_width = 416, im_height = 416):
+def ann_video_helper(input_vid, model, conf_level, out_location = '.', im_width = 416, im_height = 416, name_labels = True):
     tot_oysters = 0
     tot_frame = 0
     
@@ -410,8 +408,7 @@ def ann_video_helper(input_vid, model, conf_level, out_location = '.', im_width 
         np_img_resize = cv2.resize(np_img, (im_width, im_height))
         np_rot = np_img_resize[:, :, ::-1]
         small_pil_img = Image.fromarray(np_rot)
-        # np_image_2 = np.array(small_pil_img)
-        an_mg, num_oysters, _, _2z = ann_img_helper(small_pil_img, model, conf_level = conf_level)
+        an_mg, num_oysters, _, _2z = ann_img_helper(small_pil_img, model, conf_level = conf_level, name_labels=name_labels)
         tot_oysters += num_oysters
         frame_out = av.VideoFrame.from_ndarray(an_mg, format='bgr24')
         pkt = output_stream.encode(frame_out)
@@ -447,9 +444,9 @@ def get_raw_image(id: int) -> Image:
 
 
 
-def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_ann'):
+def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_ann', name_labels=True):
     
-    res = run_sql(f"SELECT * from annotated_files WHERE Model_ID = {Model_ID} AND Raw_File_ID = {Raw_File_ID} AND Confidence_Threshold = {threshold}")
+    res = run_sql(f"SELECT * from annotated_files WHERE Model_ID = {Model_ID} AND Raw_File_ID = {Raw_File_ID} AND Confidence_Threshold = {threshold} AND Name_Labels = {name_labels}")
     if res:
         st.write('Image Already Annotated')
         return res[-1]['ID']
@@ -458,8 +455,8 @@ def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_a
     im = get_raw_image(Raw_File_ID)
     raw_filepath = get_raw_fpath(Raw_File_ID)
 
-    annot, num_oysters, tot_time, end_ann_data = ann_img_helper(im, model, conf_level = threshold / 100)
-    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Confidence_Threshold, Filepath, Time_to_Annotate, Notes, Timestamp) VALUES ('{Raw_File_ID}', '{Model_ID}', {threshold}, '{REPLACE}', '{tot_time}', '{notes}', CURRENT_TIMESTAMP);")
+    annot, num_oysters, tot_time, end_ann_data = ann_img_helper(im, model, conf_level = threshold / 100, name_labels=name_labels)
+    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Confidence_Threshold, Name_Labels, Filepath, Time_to_Annotate, Notes, Timestamp) VALUES ('{Raw_File_ID}', '{Model_ID}', {threshold}, {name_labels}, '{REPLACE}', '{tot_time}', '{notes}', CURRENT_TIMESTAMP);")
     id = get_REPLACE_ID(table='annotated_files', column_rep='Filepath')
     f_id_name_g = get_id_fname(f_out, raw_filepath, id)
     f_local = get_temp_fname(f_id_name_g)
@@ -486,8 +483,8 @@ def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_a
 
 # ann_img(66, 28)
 
-def ann_video(Raw_File_ID, Model_ID, notes = '', f_out = 'Files/Video_ann', threshold = 30):
-    res = run_sql(f"SELECT * from annotated_files WHERE Model_ID = {Model_ID} AND Raw_File_ID = {Raw_File_ID} AND Confidence_Threshold = {threshold}")
+def ann_video(Raw_File_ID, Model_ID, notes = '', f_out = 'Files/Video_ann', threshold = 30, name_labels = True):
+    res = run_sql(f"SELECT * from annotated_files WHERE Model_ID = {Model_ID} AND Raw_File_ID = {Raw_File_ID} AND Confidence_Threshold = {threshold} AND Name_Labels = {name_labels}")
     if res:
         st.write('Video already annotated')
         return res[-1]['ID']
@@ -497,9 +494,9 @@ def ann_video(Raw_File_ID, Model_ID, notes = '', f_out = 'Files/Video_ann', thre
 
     raw_filepath = get_raw_fpath(Raw_File_ID)
 
-    avg_oysters, time_s, out_path, ann_rate = ann_video_helper(raw_filepath, model, out_location = temp_folder, conf_level = threshold / 100)
+    avg_oysters, time_s, out_path, ann_rate = ann_video_helper(raw_filepath, model, out_location = temp_folder, conf_level = threshold / 100, name_labels=name_labels)
 
-    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Filepath, Time_to_Annotate, Notes, Confidence_Threshold, Timestamp, Local_Path) VALUES ('{Raw_File_ID}', '{Model_ID}', '{REPLACE}', '{time_s * 1000}', '{notes}', {threshold}, CURRENT_TIMESTAMP, '{REPLACE}');")
+    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Filepath, Name_Labels, Time_to_Annotate, Notes, Confidence_Threshold, Timestamp, Local_Path) VALUES ('{Raw_File_ID}', '{Model_ID}', '{REPLACE}', {name_labels}, '{time_s * 1000}', '{notes}', {threshold}, CURRENT_TIMESTAMP, '{REPLACE}');")
 
     id = get_REPLACE_ID(table='annotated_files', column_rep='Filepath')
 

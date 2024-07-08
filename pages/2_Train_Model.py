@@ -2,7 +2,8 @@ from dep import *
 
 st.write("User:", st.session_state.user)
 
-roboflow_IDs = get_roboflow(st.session_state.user)
+roboflow_IDs = get_roboflow(st.session_state.user, public_user = False)
+# print(roboflow_IDs)
 if roboflow_IDs:
     MODEL_SIZE_ARRAY = ['n', 's', 'm', 'b', 'l', 'x']
     MODEL_SIZE_DESC_ARRAY = ['Nano', 'Small', 'Medium', 'Big', 'Large', 'X-tra Large']
@@ -17,5 +18,3 @@ if roboflow_IDs:
     if val:
         id_model = add_model(roboflow_ID, size_mod = model_size, epochs = epoch_st, batch = batch_st)
         st.write(f"Added model with ID {id_model}")
-else:
-    st.write("No Roboflow models added yet. Please do so on the left panel to continue")

@@ -23,8 +23,6 @@ if uploaded_file is not None:
     # st.write(type_file)
     fname = uploaded_file.name
     if type_file == 'image':
-        
-        # print('Here')
         img = Image.open(io.BytesIO(uploaded_file.getvalue()))
 
         # img.show()

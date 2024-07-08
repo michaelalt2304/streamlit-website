@@ -36,6 +36,7 @@ temp_weights = os.path.join(temp_folder, 'Weights')
 db_main = 'test_4'
 # cur_name = 'ab'
 REPLACE = 'REPLACE'
+PUBLIC_USER = 'Public'
 
 def connect_with_connector() -> sqlalchemy.engine.base.Engine:
     """
@@ -343,23 +344,10 @@ def add_photo(user, im, filename, notes = '', f_out = 'Files/Image_raw'):
     fname = get_filename(temp_fname)
     upload_file_g(f_temp, f_id_name_g)
     run_sql(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_fname}', Filename = '{fname}' WHERE ID = {id};")
-    # print(f"\n\n\n\n'{user}', '{f_id_name_g}', '{temp_fname}', {fsize}, 'Image', '{ext}', '{notes}', {width}, {height}")
     return id
 
-def get_files(user):
-    res = run_sql(f"SELECT Filepath, Filename, ID FROM raw_files WHERE Username = '{user}';")
-    keys = [row['Filename'] for row in res]
-    values = [row['ID'] for row in res]
-    return keys, values
 
 
-def get_models(name):
-    res = run_sql(f"SELECT * FROM roboflow INNER JOIN models ON roboflow.ID = models.Roboflow_ID WHERE username = '{name}' AND models.Local_Path != '{REPLACE}';")
-    # st.write(res)
-    mod_names_keys = [f"{row['Model_Type']}v{row['Version']} {row['Width_Training_Images']}x{row['Height_Training_Images']} with {row['Workspace']} {row['Timestamp']}" for row in res]
-    all_mods_values = [row['ID'] for row in res]
-
-    return mod_names_keys, all_mods_values
 
 def ann_img_helper(im: Image, model, label_annotator = sv.LabelAnnotator(text_scale = 0.4, text_padding = 1), bounding_box_annotator = sv.BoxCornerAnnotator(), verbose = False, conf_level = 0.05, name_labels = True) -> np.ndarray:
     fix_img = im.convert('RGB')
@@ -421,7 +409,6 @@ def ann_video_helper(input_vid, model, conf_level, out_location = '.', im_width 
     return tot_oysters / index, net_time, out_path, ann_rate
 
 def get_model(id: int):
-    
     cur_model = run_sql(f"SELECT Filepath, Local_Path FROM models WHERE ID = {id}")[-1]
     download_file_g(cur_model['Filepath'], cur_model['Local_Path'])
     try:
@@ -432,7 +419,6 @@ def get_model(id: int):
         st.write('Getting model failed')
 
 def get_raw_fpath(id: int) -> str:
-    
     cur_file = run_sql(f"SELECT Filepath, Local_Path FROM raw_files WHERE ID = {id}")[-1]
     download_file_g(cur_file['Filepath'], cur_file['Local_Path'])
     return cur_file['Local_Path']
@@ -569,7 +555,7 @@ def download_roboflow(api_key, workspace, project, version, download, location):
             f2.writelines(lines[:-4])
             f2.write("test: ../test/images\ntrain: ../train/images\nval: ../valid/images\n\n")
 
-def add_roboflow(name, export_string, f_out = 'Files/Roboflow', f_weights = "Files/Weights", load = False):
+def add_roboflow(name, export_string, f_out = 'Files/Roboflow', load = False):
     
     '''
     Returns: Index of added roboflow if successful, 0 if not
@@ -602,6 +588,8 @@ def add_roboflow(name, export_string, f_out = 'Files/Roboflow', f_weights = "Fil
     
     id = get_REPLACE_ID(table='roboflow', column_rep='Api_Key')
     
+    # st.write(id)
+
     run_sql(f"UPDATE roboflow SET Api_Key = '{api_key_lab}' WHERE ID = {id};")
     
     st.write("All done!")
@@ -621,12 +609,6 @@ def download_weight(path, ver): # one of ['n', 's', 'm', 'b', 'x', 'l']
         if not os.path.exists(computer_path):
             wget.download(web_path, out = path)
         return computer_path
-
-def get_roboflow(user):
-    res = run_sql(f"SELECT ID, Project, Workspace, Version FROM roboflow WHERE Username = '{user}'")
-
-    return [f"{row['Workspace']}, {row['Project']} v{row['Version']} ({row['ID']})" for row in res], [row['ID'] for row in res]
-
 
 def add_model(roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Files/Model"):
     
@@ -688,14 +670,43 @@ def kv_select(kvlist, label = "", reverse = False):
 
 def generate_random_string(length):
 
-  letters = string.ascii_letters + string.digits
-  result_str = ''.join(random.choice(letters) for i in range(length))
-  return result_str
+    letters = string.ascii_letters + string.digits
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
 
 def get_type_file(ID):
-    # st.write(ID)
     res = run_sql(f"SELECT Type FROM raw_files WHERE ID = {ID}")[-1]
     return res['Type']
 
+#########################
+### KEY VALUE GETTERS ###
+#########################
+def get_pub_str(public_user):
+    return f" OR Username = '{PUBLIC_USER}'" if public_user else ''
+def get_files(user, public_user = True):
+    public_user_str = get_pub_str(public_user)
+    res = run_sql(f"SELECT Filepath, Filename, ID FROM raw_files WHERE (Username = '{user}'{public_user_str}) AND Filepath != '{REPLACE}';", write = False)
+    if not res:
+        st.write(f"No annotating files are available to user {st.session_state.user}. Please go to the \"Upload Files\" tab first.")
+        return False
+    keys = [row['Filename'] for row in res]
+    values = [row['ID'] for row in res]
+    return keys, values
+# f" OR Username = '{PUBLIC_USER}'" if public_user else ''
+def get_roboflow(user, public_user = True):
+    public_user_str = get_pub_str(public_user)
+    res = run_sql(f"SELECT ID, Project, Workspace, Version FROM roboflow WHERE (Username = '{user}'{public_user_str}) AND Api_Key != '{REPLACE}'")
+    if not res:
+        st.write(f"No Roboflow details added yet for user {st.session_state.user}. Please do so on the \"Add Roboflow\" tab first.")
+        return False
+    return [f"{row['Workspace']}, {row['Project']} v{row['Version']} ({row['ID']})" for row in res], [row['ID'] for row in res]
+def get_models(name, public_user = True):
+    public_user_str = get_pub_str(public_user)
+    res = run_sql(f"SELECT * FROM roboflow INNER JOIN models ON roboflow.ID = models.Roboflow_ID WHERE (Username = '{name}'{public_user_str}) AND models.Local_Path != '{REPLACE}' AND roboflow.Api_Key != '{REPLACE}';", write = False)
+    if not res:
+        st.write(f"No models are available to user {st.session_state.user}. Please go to the \"Train Model\" tab first.")
+        return False
+    mod_names_keys = [f"{row['Model_Type']}v{row['Version']} {row['Width_Training_Images']}x{row['Height_Training_Images']} with {row['Workspace']} {row['Timestamp']}" for row in res]
+    all_mods_values = [row['ID'] for row in res]
 
-
+    return mod_names_keys, all_mods_values

@@ -17,5 +17,5 @@ if roboflow_IDs:
     notes = st.text_input("(Optional) Add notes about this model to better identify it:", max_chars=NOTES_SIZE_LIMIT)
     val = st.button(label="Train")
     if val:
-        id_model = add_model(roboflow_ID, size_mod = model_size, epochs = epoch_st, batch = batch_st, notes = notes)
+        id_model = add_model(st.session_state.user, roboflow_ID, size_mod = model_size, epochs = epoch_st, batch = batch_st, notes = notes)
         st.write(f"Added model with ID {id_model}")

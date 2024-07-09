@@ -13,8 +13,8 @@ new_user = st.checkbox("Create Account", value=False)
 if 'user' not in st.session_state:
     st.session_state['user'] = 'Guest'
 
-user = st.text_input("Username", "")
-pwd = st.text_input("Password", "")
+user = st.text_input("Username", "",  max_chars=USERNAME_PWD_SIZE_LIMIT)
+pwd = st.text_input("Password", "",  max_chars=USERNAME_PWD_SIZE_LIMIT)
 st.session_state.user = "Guest"
 
 success = add_user(user, pwd, new_user)

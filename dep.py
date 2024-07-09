@@ -39,6 +39,7 @@ REPLACE = 'REPLACE'
 PUBLIC_USER = 'Public'
 NO_VALUES = ([], [])
 NOTES_SIZE_LIMIT = 2048
+USERNAME_PWD_SIZE_LIMIT = 64
 
 def connect_with_connector() -> sqlalchemy.engine.base.Engine:
     """
@@ -596,7 +597,7 @@ def download_weight(path, ver): # one of ['n', 's', 'm', 'b', 'x', 'l']
             wget.download(web_path, out = path)
         return computer_path
 
-def add_model(roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Files/Model", notes = ''):
+def add_model(user, roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Files/Model", notes = ''):
     
     weights_path = download_weight(temp_folder, size_mod)
     res = run_sql(f"SELECT * FROM roboflow WHERE ID = {roboflow_ID}")[-1]
@@ -612,11 +613,11 @@ def add_model(roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Fil
     height = im.size[1]
     delete_folder('runs')
 
-    run_sql(f"""INSERT INTO models (Timestamp, Filepath, Local_Path, Version, 
+    run_sql(f"""INSERT INTO models (Username, Timestamp, Filepath, Local_Path, Version, 
                  Hyperparams, Epoch, Batch, Model_Type, Width_Training_Images, Height_Training_Images, 
-                 Size, Roboflow_ID, Notes) values (CURRENT_TIMESTAMP, '{REPLACE}', '{REPLACE}', 10, NULL, {epochs}, {batch}, 
-                 'YOLO', {width}, {height}, '{size_mod}', {roboflow_ID}, '{notes}')
-                 """)
+                 Size, Roboflow_ID, Notes) values ('{user}', CURRENT_TIMESTAMP, '{REPLACE}', '{REPLACE}', 
+                 10, NULL, {epochs}, {batch}, 'YOLO', {width}, {height}, '{size_mod}', {roboflow_ID}, 
+                 '{notes}')""")
     
     id_mod = get_REPLACE_ID(table='models', column_rep='Filepath')
     pts_name = f'{id_mod}.pt'
@@ -639,9 +640,6 @@ def add_model(roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out = "Fil
     return id_mod
 
 
-
-
-# id_mod = add_model(id_rob,epochs=1, size_mod = 'n')
 def order_by_second_ls(arr, order_ls): # SORTS BY VALUE, RETURNS A NEW LIST (against python standards)
     ARR_CP = arr[:]
     arr_sort = arr[:]
@@ -682,36 +680,37 @@ def get_type_file(ID):
 ### KEY VALUE GETTERS ###
 #########################
 def get_pub_str(public_user):
-    return f" OR Username = '{PUBLIC_USER}'" if public_user else ''
+    return f"OR Username = '{PUBLIC_USER}'" if public_user else ''
 def get_notes_str(notes, name, id):
-    return f"{notes}, owner: {name} ({id})"
+    return f"{notes}, Owner: {name} ({id})"
 
 def get_files(user, public_user = True):
     public_user_str = get_pub_str(public_user)
-    res = run_sql(f"SELECT Filepath, Filename, ID, Username, Notes, Timestamp FROM raw_files WHERE (Username = '{user}'{public_user_str}) AND Filepath != '{REPLACE}';")
+    res = run_sql(f"SELECT Filepath, Filename, ID, Username, Notes, Timestamp FROM raw_files WHERE (Username = '{user}' {public_user_str}) AND Filepath != '{REPLACE}';")
     if not res:
         st.write(f"No annotating files are available to user {st.session_state.user}. Please go to the \"Upload Files\" tab first.")
         return False
-    keys = [f"{row['Filename']}, owner: {row['Username']}" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res]
+    keys = [f"{row['Filename']}, Owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res]
     values = [row['ID'] for row in res]
     tstamps = [row['Timestamp'] for row in res]
     return keys, values, tstamps
 
 def get_roboflow(user, public_user = True):
     public_user_str = get_pub_str(public_user)
-    res = run_sql(f"SELECT ID, Project, Workspace, Version, Username, Notes, Timestamp FROM roboflow WHERE (Username = '{user}'{public_user_str}) AND Api_Key != '{REPLACE}'")
+    res = run_sql(f"SELECT ID, Project, Workspace, Version, Username, Notes, Timestamp FROM roboflow WHERE (Username = '{user}' {public_user_str}) AND Api_Key != '{REPLACE}'")
     if not res:
         st.write(f"No Roboflow details added yet for user {st.session_state.user}. Please do so on the \"Add Roboflow\" tab first.")
         return False
-    return [f"{row['Workspace']} {row['Project']} v{row['Version']}, owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res], [row['ID'] for row in res], [row['Timestamp'] for row in res]
+    return [f"{row['Workspace']} {row['Project']} v{row['Version']}, Owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res], [row['ID'] for row in res], [row['Timestamp'] for row in res]
 
 def get_models(name, public_user = True):
     public_user_str = get_pub_str(public_user)
-    res = run_sql(f"SELECT * FROM roboflow INNER JOIN models ON roboflow.ID = models.Roboflow_ID WHERE (Username = '{name}'{public_user_str}) AND models.Local_Path != '{REPLACE}' AND roboflow.Api_Key != '{REPLACE}';")
+    # res = run_sql(f"SELECT * FROM roboflow INNER JOIN models ON roboflow.ID = models.Roboflow_ID WHERE (Username = '{name}'{public_user_str}) AND models.Local_Path != '{REPLACE}' AND roboflow.Api_Key != '{REPLACE}';")
+    res = run_sql(f"SELECT * FROM models WHERE (Username = '{name}' {public_user_str}) AND models.Local_Path != '{REPLACE}';")
     if not res:
         st.write(f"No models are available to user {st.session_state.user}. Please go to the \"Train Model\" tab first.")
         return False
-    mod_names_keys = [f"{row['Model_Type']}v{row['Version']} {row['Width_Training_Images']}x{row['Height_Training_Images']} with {row['Workspace']}, owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res]
+    mod_names_keys = [f"{row['Model_Type']}v{row['Version']} {row['Width_Training_Images']}x{row['Height_Training_Images']}, Owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res]
     all_mods_values = [row['ID'] for row in res]
     all_mods_tstamps = [row['Timestamp'] for row in res]
     return mod_names_keys, all_mods_values, all_mods_tstamps

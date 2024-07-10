@@ -41,6 +41,9 @@ NO_VALUES = ([], [])
 NOTES_SIZE_LIMIT = 2048
 USERNAME_PWD_SIZE_LIMIT = 64
 GUEST = 'Guest'
+ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';']
+
+
 # print('\n\n\n\n\n\n\n\n\n\n\n')
 def reprime_user():
     if 'user' not in st.session_state:
@@ -284,6 +287,16 @@ make_folder(temp_folder)
 ###########################
 # SQL/Database Management #
 ###########################
+
+def strip_chars(start: str, chrs_to_rem = ILLEGAL_STRING_CHARS) -> str:
+    for ch in chrs_to_rem:
+        start = start.replace(ch, '')
+    return start
+
+def check_illegal_chars(start: str, chrs_illegal = ILLEGAL_STRING_CHARS) -> bool:
+    return start != strip_chars(start, chrs_illegal)
+    
+
 def insert_user(name, password):
     run_sql(f"INSERT INTO people (Username, Password, Time_Created) VALUES ('{name}', '{password}', CURRENT_TIMESTAMP );")
     st.write('Account created!')
@@ -293,8 +306,14 @@ def add_user(name, password, new_user):
     '''
     Returns: name if query is successful, False if not
     '''
+
     if not password:
         return False
+    if check_illegal_chars(name) or check_illegal_chars(password):
+        str_illegal_char = " ".join(ILLEGAL_STRING_CHARS)
+        st.write(f"Illegal characters detected. Please do not enter any of {str_illegal_char} into your username or password.")
+        return False
+
     res = run_sql(f"SELECT Username, Password FROM people WHERE Username = '{name}'")
     # st.write(res)
     if res:

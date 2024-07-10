@@ -18,7 +18,8 @@ if roboflow_IDs:
 
     epoch_st = st.slider('Epochs', min_value=1, max_value=20, value=2, step=1) #FIXME - Default should be higher, low for testing
     batch_st = st.select_slider('Batch Size', options = [2**i for i in range(0, 4 + 1)], value = 8)
-    notes = st.text_input("(Optional) Add notes about this model to better identify it:", max_chars=NOTES_SIZE_LIMIT)
+    notes_raw = st.text_input("(Optional) Add notes about this model to better identify it:", max_chars=NOTES_SIZE_LIMIT)
+    notes = strip_chars(notes_raw)
     val = st.button(label="Train")
     if val:
         id_model = add_model(st.session_state.user, roboflow_ID, size_mod = model_size, epochs = epoch_st, batch = batch_st, notes = notes)

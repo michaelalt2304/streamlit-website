@@ -8,7 +8,8 @@ st.set_page_config(
 reprime_user()
 
 uploaded_file = st.file_uploader("Choose a file")
-notes = st.text_input("(Optional) Add notes about this file to better identify it:", max_chars=NOTES_SIZE_LIMIT)
+notes_raw = st.text_input("(Optional) Add notes about this file to better identify it:", max_chars=NOTES_SIZE_LIMIT)
+notes = strip_chars(notes_raw)
 if uploaded_file is not None:
     # To read file as bytes:
     split_type = uploaded_file.type.rsplit('/')

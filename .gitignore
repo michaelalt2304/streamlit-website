@@ -5,4 +5,5 @@ __pycache__/
 runs/
 *.pyc
 __pycache__
-__pycache__/dep.*
+__pycache__/*
+*.pyc

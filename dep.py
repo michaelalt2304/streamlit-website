@@ -40,6 +40,11 @@ PUBLIC_USER = 'Public'
 NO_VALUES = ([], [])
 NOTES_SIZE_LIMIT = 2048
 USERNAME_PWD_SIZE_LIMIT = 64
+GUEST = 'Guest'
+
+if 'user' not in st.session_state:
+    st.write('No user signed in')
+    st.session_state['user'] = GUEST
 
 def connect_with_connector() -> sqlalchemy.engine.base.Engine:
     """

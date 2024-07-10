@@ -1,7 +1,13 @@
 
 from dep import *
 
-st.write("User:", st.session_state.user)
+st.set_page_config(
+    page_title="Annotate Files",
+    page_icon="🦪",
+)
+
+reprime_user()
+
 all_user_files = get_files(st.session_state.user, public_user = True)
 models = get_models(st.session_state.user, public_user = True)
 if all_user_files and models:

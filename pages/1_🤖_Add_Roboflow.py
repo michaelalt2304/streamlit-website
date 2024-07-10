@@ -1,5 +1,10 @@
 from dep import *
+st.set_page_config(
+    page_title="Add Roboflow",
+    page_icon="🦪",
+)
 
+reprime_user()
 
 st.title('Import Roboflow Data')
 st.image('logos/Roboflow_logo.png')
@@ -12,7 +17,6 @@ expander.markdown(""" Skip the first two steps if you already have a project in 
 4. Use the Jupyter tab, and copy all the code with the double square icon in the corner
 5. Paste into the below dialog box and click 'Download Roboflow'            
 """)
-st.write("User:", st.session_state.user)
 roboflow_info = st.text_area("Import RoboFlow Information Here", value="""rf = Roboflow(api_key="YGXCqFJKogQa7WbavueN")
 project = rf.workspace("oyster-pt-3").project("oyt")
 version = project.version(7)

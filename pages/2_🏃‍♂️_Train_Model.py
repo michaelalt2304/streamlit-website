@@ -1,13 +1,17 @@
 from dep import *
 
-st.write("User:", st.session_state.user)
+st.set_page_config(
+    page_title="Train Model",
+    page_icon="🦪",
+)
+
+reprime_user()
 
 roboflow_IDs = get_roboflow(st.session_state.user)
 # print(roboflow_IDs)
 if roboflow_IDs:
     MODEL_SIZE_ARRAY = ['n', 's', 'm', 'b', 'l', 'x']
     MODEL_SIZE_DESC_ARRAY = ['Nano', 'Small', 'Medium', 'Big', 'Large', 'X-tra Large']
-    MODEL_SIZE_DICT = dict(zip(MODEL_SIZE_DESC_ARRAY, MODEL_SIZE_ARRAY))
 
     roboflow_ID = kv_select(roboflow_IDs, label = 'What roboflow model do you want to use?', reverse=True)
     model_size = kv_select((MODEL_SIZE_DESC_ARRAY, MODEL_SIZE_ARRAY), label = 'What size do you want your model to be?', reverse = False)

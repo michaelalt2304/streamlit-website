@@ -1,6 +1,11 @@
 from dep import *
 
-st.write("User:", st.session_state.user)
+st.set_page_config(
+    page_title="Upload Files",
+    page_icon="🦪",
+)
+
+reprime_user()
 
 uploaded_file = st.file_uploader("Choose a file")
 notes = st.text_input("(Optional) Add notes about this file to better identify it:", max_chars=NOTES_SIZE_LIMIT)

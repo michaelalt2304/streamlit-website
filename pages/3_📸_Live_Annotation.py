@@ -1,11 +1,16 @@
-# class Fr:
-#     def __init__(self):
-#         self.size = 0
+
 from dep import *
+
+st.set_page_config(
+    page_title="Live Annotation",
+    page_icon="🦪",
+)
+
+
 # st.write('Hello World')
 # frame = Fr()
 st.title("Webcam Live Feed")
-st.write("User:", st.session_state.user)
+reprime_user()
 models = get_models(st.session_state.user)
 if models:
     cur_model = kv_select(models, 'What model would you like to annotate with?', reverse=True)

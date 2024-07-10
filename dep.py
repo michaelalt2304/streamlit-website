@@ -26,7 +26,7 @@ from google.cloud.sql.connector import Connector, IPTypes
 import pymysql
 import sqlalchemy
 from sqlalchemy.sql import text
-
+from switch_page import *
 
 temp_folder = os.path.join('.', 'Files_local')
 temp_weights = os.path.join(temp_folder, 'Weights')
@@ -41,10 +41,16 @@ NO_VALUES = ([], [])
 NOTES_SIZE_LIMIT = 2048
 USERNAME_PWD_SIZE_LIMIT = 64
 GUEST = 'Guest'
+# print('\n\n\n\n\n\n\n\n\n\n\n')
+def reprime_user():
+    if 'user' not in st.session_state:
+        print('No user signed in')
+        st.session_state['user'] = GUEST
+        switch_page('Sign_In')
+        # st.write('No user signed in')
+    else:
+        st.write('User:', st.session_state.user)
 
-if 'user' not in st.session_state:
-    st.write('No user signed in')
-    st.session_state['user'] = GUEST
 
 def connect_with_connector() -> sqlalchemy.engine.base.Engine:
     """

@@ -41,7 +41,7 @@ NO_VALUES = ([], [])
 NOTES_SIZE_LIMIT = 2048
 USERNAME_PWD_SIZE_LIMIT = 64
 GUEST = 'Guest'
-ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';']
+ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';', '(', ')']
 
 
 # print('\n\n\n\n\n\n\n\n\n\n\n')
@@ -522,24 +522,22 @@ def add_video(name, fpath, fname, notes = '', f_out = 'Files/Video_raw'):
     '''
     Returns: Index of added video if successful, 0 if not
     '''
-    cap = cv2.VideoCapture(fpath)
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fsize = os.stat(fpath).st_size
-    ext = get_ext(fpath)
-        
-    run_sql(f"INSERT INTO raw_files (Username, Filepath, Filename, Local_Path, Size, Type, Extension, Notes, Width, Height, Timestamp) VALUES ('{name}', '{REPLACE}', '{REPLACE}', '{REPLACE}', {fsize}, 'Video', '{ext}', '{notes}', {width}, {height}, CURRENT_TIMESTAMP);")
+    run_sql(f"INSERT INTO raw_files (Username, Filepath, Filename, Local_Path, Size, Type, Extension, Notes, Width, Height, Timestamp) VALUES ('{name}', '{REPLACE}', '{REPLACE}', '{REPLACE}', {0}, 'Video', '{REPLACE}', '{notes}', {0}, {0}, CURRENT_TIMESTAMP);")
     id = get_REPLACE_ID(table='raw_files', column_rep='Filepath')
     f_id_name_g = get_id_fname(f_out, fname, id)
     temp_path = get_temp_fname(f_id_name_g)
     upload_file_g(fpath, f_id_name_g)
-    
     os.rename(fpath, temp_path)
-
     fname = get_filename(temp_path)
-    run_sql(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_path}', Filename = '{fname}' WHERE ID = {id};")
-
+    cap = cv2.VideoCapture(temp_path)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fsize = os.stat(temp_path).st_size
+    ext = get_ext(temp_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
+    run_sql(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_path}', Filename = '{fname}', Size = {fsize}, Width = {width}, Height = {height}, Extension = '{ext}' WHERE ID = {id};")
+
+    
     color_order = 'RGB' # FIXME - cant figure out how to extract from cv2 object
     
     

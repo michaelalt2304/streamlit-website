@@ -1,9 +1,6 @@
 Files_local/
 Runs/
 *.toml
-__pycache__/
-runs/
-*.pyc
 __pycache__
-__pycache__/*
+runs/
 *.pyc

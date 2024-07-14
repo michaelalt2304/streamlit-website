@@ -42,14 +42,14 @@ NOTES_SIZE_LIMIT = 2048
 USERNAME_PWD_SIZE_LIMIT = 64
 GUEST = 'Guest'
 ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';', '(', ')']
-
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "./application_default_credentials.json"
 
 # print('\n\n\n\n\n\n\n\n\n\n\n')
 def reprime_user():
     if 'user' not in st.session_state:
         print('No user signed in')
         st.session_state['user'] = GUEST
-        switch_page('Sign_In')
+        switch_page('app')
         # st.write('No user signed in')
     else:
         st.write('User:', st.session_state.user)

@@ -1,0 +1,4 @@
+services:
+  webapp:
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: "./application_default_credentials.json"

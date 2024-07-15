@@ -44,15 +44,38 @@ NO_VALUES = ([], [])
 NOTES_SIZE_LIMIT = 2048
 USERNAME_PWD_SIZE_LIMIT = 64
 GUEST = 'Guest'
-ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';', '(', ')']
+ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';', '(', ')', '[', ']', '{', '}']
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "./application_default_credentials.json"
+SQL_CREDENTIALS = "molten-album-427115-q6-cfa4e4aaf3bd.json"
+
+def switch_page(page_name: str):
+    def standardize_name(name: str) -> str:
+        return name.lower().replace("_", " ")
+
+    page_name = standardize_name(page_name)
+
+    pages = get_pages("streamlit_app.py")
+
+    for page_hash, config in pages.items():
+        if standardize_name(config["page_name"]) == page_name:
+            raise RerunException(
+                RerunData(
+                    page_script_hash=page_hash,
+                    page_name=page_name,
+                )
+            )
+
+    page_names = [standardize_name(config["page_name"]) for config in pages.values()]
+
+    raise ValueError(f"Could not find page {page_name}. Must be one of {page_names}")
+
 
 # print('\n\n\n\n\n\n\n\n\n\n\n')
-def reprime_user():
+def reprime_user(home = 'sign in'):
     if 'user' not in st.session_state:
         print('No user signed in')
         st.session_state['user'] = GUEST
-        switch_page('app')
+        switch_page(home)
         # st.write('No user signed in')
     else:
         st.write('User:', st.session_state.user)
@@ -111,40 +134,12 @@ def run_sql(prompt: str, write = False):
             con.commit()
 
 
-def switch_page(page_name: str):
-    """
-    Switch page programmatically in a multipage app
-
-    Args:
-        page_name (str): Target page name
-    """
-
-
-    def standardize_name(name: str) -> str:
-        return name.lower().replace("_", " ")
-
-    page_name = standardize_name(page_name)
-
-    pages = get_pages("streamlit_app.py")  # OR whatever your main page is called
-
-    for page_hash, config in pages.items():
-        if standardize_name(config["page_name"]) == page_name:
-            raise RerunException(
-                RerunData(
-                    page_script_hash=page_hash,
-                    page_name=page_name,
-                )
-            )
-
-    page_names = [standardize_name(config["page_name"]) for config in pages.values()]
-
-    raise ValueError(f"Could not find page {page_name}. Must be one of {page_names}")
 
 ###########################
 # GOOGLE HELPER FUNCTIONS #
 ###########################
 import json
-def sign_in_storage_g(path_to_cred = '', JSON_file = 'molten-album-427115-q6-cfa4e4aaf3bd.json'):
+def sign_in_storage_g(path_to_cred = '', JSON_file = SQL_CREDENTIALS):
     # f = open(os.path.join(path_to_cred, JSON_file))
     credentials_dict = json.loads('''
 {

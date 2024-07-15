@@ -1,6 +1,5 @@
 
 from dep import *
-
 st.set_page_config(
     page_title="Annotate Files",
     page_icon="🦪",
@@ -8,7 +7,7 @@ st.set_page_config(
 
 reprime_user()
 
-all_user_files = get_files(st.session_state.user, public_user = True)
+all_user_files = get_raw_files(st.session_state.user, public_user = True)
 models = get_models(st.session_state.user, public_user = True)
 if all_user_files and models:
     cur_file = kv_select(all_user_files, 'What file would you like to annotate?', reverse=True)

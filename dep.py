@@ -30,6 +30,7 @@ from streamlit.runtime.scriptrunner import RerunData, RerunException
 from streamlit.source_util import get_pages
 from streamlit_webrtc import webrtc_streamer
 from streamlit.errors import StreamlitAPIException
+from st_pages import show_pages, Page
 
 
 temp_folder = os.path.join('.', 'Files_local')
@@ -48,6 +49,10 @@ GUEST = 'Guest'
 ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';', '(', ')', '[', ']', '{', '}']
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "./application_default_credentials.json"
 SQL_CREDENTIALS = "molten-album-427115-q6-212e6f039268.json"
+
+##############################
+# STREAMLIT HELPER FUNCTIONS #
+##############################
 
 def switch_page(page_name: str):
     def standardize_name(name: str) -> str:
@@ -69,6 +74,23 @@ def switch_page(page_name: str):
     page_names = [standardize_name(config["page_name"]) for config in pages.values()]
 
     raise ValueError(f"Could not find page {page_name}. Must be one of {page_names}")
+
+def show_specific_pages(is_public: bool):
+    used_pages = [
+            Page("app.py", "Sign In", "🔑"),
+            Page("pages/1_Live_Annotation.py", "Live Annotation", "📸"),
+            Page("pages/2_Upload_Files.py", "Upload Files", "⬆️"),
+            Page("pages/3_Annotate_Files.py", "Annotate Files", "📝"),
+            Page("pages/4_Gallery.py", "Gallery", "🎆"),
+            Page("pages/5_Add_Roboflow.py", "Add Roboflow", "🤖") if is_public else None,
+            Page("pages/6_Train_Model.py", "Train Model", "🏃‍♂️") if is_public else None
+                 ]
+
+    show_pages([page for page in used_pages if page != None])
+
+#################################
+# SQL LANGUAGE HELPER FUNCTIONS #
+#################################
 
 
 # print('\n\n\n\n\n\n\n\n\n\n\n')
@@ -700,8 +722,13 @@ def order_by_second_ls(arr, order_ls): # SORTS BY VALUE, RETURNS A NEW LIST (aga
 
 
     return arr_sort
+def generate_random_string(length):
 
-def kv_select(kvlist, label = "", reverse = False):
+    letters = string.ascii_letters + string.digits
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
+
+def kv_select(kvlist, label = "", reverse = False, container = st, key = None):
     KEYS = 0
     VALUES = 1
     SORTING = 2
@@ -712,16 +739,12 @@ def kv_select(kvlist, label = "", reverse = False):
         elif len(kvlist) == 3: # includes tstamp/ordering list
             keys_to_select_unrev = order_by_second_ls(kvlist[KEYS], kvlist[SORTING])
             keys_to_select = keys_to_select_unrev[::-1] if reverse else keys_to_select_unrev
-        selected = st.selectbox(label, keys_to_select)
+        selected = container.selectbox(label, keys_to_select, key=key, label_visibility= 'visible' if label else 'hidden')
         return kvlist[VALUES][kvlist[KEYS].index(selected)]
     else:
         st.write('No values found')
 
-def generate_random_string(length):
 
-    letters = string.ascii_letters + string.digits
-    result_str = ''.join(random.choice(letters) for i in range(length))
-    return result_str
 
 def get_type_file(ID):
     res = run_sql(f"SELECT Type FROM raw_files WHERE ID = {ID}")[-1]
@@ -736,7 +759,7 @@ def get_notes_str(notes, name, id):
     return f"{notes}, Owner: {name} ({id})"
 
 @st.cache_data
-def get_files(user, public_user = True):
+def get_raw_files(user, public_user = True):
     public_user_str = get_pub_str(public_user)
     # print("Accessed SQL for get_files")
     res = run_sql(f"SELECT Filepath, Filename, ID, Username, Notes, Timestamp FROM raw_files WHERE (Username = '{user}' {public_user_str}) AND Filepath != '{REPLACE}';")

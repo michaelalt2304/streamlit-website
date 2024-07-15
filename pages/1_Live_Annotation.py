@@ -1,6 +1,12 @@
 
 from dep import *
 
+from twilio.rest import Client
+
+account_sid = 'AC96566f955b99b80802ecb8a9fc4762c9' # os.environ['TWILIO_ACCOUNT_SID']
+auth_token = '66f99cdad98de8a2a9aab410fe8c1efc' # os.environ['TWILIO_AUTH_TOKEN']
+twil_client = Client(account_sid, auth_token)
+token = twil_client.tokens.create()
 try:
     st.set_page_config(
         page_title="Live Annotation",
@@ -29,4 +35,5 @@ if models:
         img_pil = Image.fromarray(np_flip)
         final_np, _, _, _ = ann_img_helper(img_pil, model_YOLO)
         return av.VideoFrame.from_ndarray(final_np, format="bgr24")
-    webrtc_streamer(key="example", video_frame_callback=vfc)
+    webrtc_streamer(key="example", video_frame_callback=vfc, rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+    })

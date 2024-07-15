@@ -46,7 +46,7 @@ USERNAME_PWD_SIZE_LIMIT = 64
 GUEST = 'Guest'
 ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';', '(', ')', '[', ']', '{', '}']
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "./application_default_credentials.json"
-SQL_CREDENTIALS = "molten-album-427115-q6-cfa4e4aaf3bd.json"
+SQL_CREDENTIALS = "molten-album-427115-q6-212e6f039268.json"
 
 def switch_page(page_name: str):
     def standardize_name(name: str) -> str:
@@ -139,25 +139,10 @@ def run_sql(prompt: str, write = False):
 # GOOGLE HELPER FUNCTIONS #
 ###########################
 import json
+@st.cache_resource
 def sign_in_storage_g(path_to_cred = '', JSON_file = SQL_CREDENTIALS):
-    # f = open(os.path.join(path_to_cred, JSON_file))
-    credentials_dict = json.loads('''
-{
-    "type": "service_account",
-    "project_id": "molten-album-427115-q6",
-    "private_key_id": "cfa4e4aaf3bd3f622e245a2d69ddae48a146928a",
-    "private_key": "-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDIGSWEso1eDL60\\nqK2ygaRjSxNv70+HttWOWOg/2QbeijX7YT3tMTxPzyt4rgGCqWkqaUAssvl/cZjE\\nimeF6MUVZdSKyjr1AU6WXUNZpwcLYeqTEn97fS/19bLH4sGjcDZDkwdPrIkzXt4w\\nRHk/iQz1uSDJH6RAJRy6i7NEpNxGG/55vxETnJTNowvzGSkkeJyHGlPfv0LZBu3a\\nUzmsv03cPUoAD9EIW9p4UTL96jptkK2Yi3Aoahh0K5GFTFe/WS0DTWx3J99ejt8P\\n4cQzJonjUROHgz5NNBeCXW4PKC3TUseKctYMpLqez5oIRwRhqCVUCYM78WLe4b+Q\\n5h+rjGhhAgMBAAECggEABbOtvYPHAnyTfJtn47PNBuVPRvvHRONBX56J87PP/cxr\\ncF/bf2RNRyrsnrI6qcoBDKvWH8/zyx1mEIevHoI9B3iQ32mW139ziVZcAnR/f2QJ\\nZqp6xn6RPM2FDCwaf3lFmpRYe307paKY60AwQk6591CQrhqAODG2iVxMvfKCsl6x\\n7/n3ekcdTBmygbgWhXdQlaawupj4b2NmlU7gCisgdKERBFTFDo3NkX5YwE5P69RB\\nSzPIVt9GkfLX6GVijjd84Lt8f01TknPA4WK+smYosSInXiL20s/xMH0MLMYJbWav\\nLSeziD8GTvJFrdWx35oklecGlCjF8+xKDYlYEdbI5wKBgQDqiCaZiI18OhNx0aKO\\nsNhdAXfteKG57RCTNAcQRBA/iB2yW5B34AE2M5AKQRNh4TNUejqpwNtbNhBJ7BJz\\n9AclCNP6CPP6vnPpoood9dIENvHppIYR9t3mdNaQUdZhrdiF9zThmhNgEiqL6GC7\\nU+9FQ2rNc6WUxfi49/VFGg/nUwKBgQDaahp+xmcXll8yk7U3eKbjwCFsMHYEPvze\\nj+PumEv/WgPQM+oDXmIqFpHVGM/17tVqMOEvUb7ubJbPWFir2dhbtINJD5Jtma+3\\nGrvGtUvfoJqWnwT+CMfVAxN9U7zUp2ppoAHjLrRe3xacMfFt0b8nwJ4Yhj4390rE\\nr14pbwe++wKBgEPzZpudQMD5YqDbiCmne0iXIFQhW1ovIVpE/LbtwXdmzJPci6Lv\\nt+ooTldqO19kjCaxs0VzpxpqM5X3W/FUhq1oPWJ4LZg8jgDnIvVDP7IQ6U40aNPT\\nnr8iovf1fhOW9uD5msyyg2KWYNVgYoZj7zM2MT+Nfi/4m/Obg+idgHYZAoGBAK+G\\nrZxMXfU6x26h/fSCZbyKX1HO8EkhRZ6nDIpmokyoToA3+EyUwVcJpFEZC6edNK2O\\ncqnQjByX7+raGQiinZm1S/yfIxIpfGkudtGOSVeCfjmluiFddRreyf7iGNLdaEtS\\nZ7HnitTjfAwyps+WzIRp66PR3pajidbfCFFMBXGZAoGAAiJRIr21euk5hMSCzSrx\\n7ObpmNu0e8SHKsQ/3zeg5n49ux3eSDTqVD3u4A2xfXlziNwruGuYFWRO8CC4VciW\\nhiAnXRSVIKCdqEAmKoYCFOMlW2wiaheWxrkya7M6/aQ7Zq46eLnl4dSnce0gv4Hu\\nMX793evBZyJuyZ643PkKPug=\\n-----END PRIVATE KEY-----\\n",
-    "client_email": "cloud-storage-sa@molten-album-427115-q6.iam.gserviceaccount.com",
-    "client_id": "105767049463355191586",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/cloud-storage-sa%40molten-album-427115-q6.iam.gserviceaccount.com",
-    "universe_domain": "googleapis.com"
-}
-    ''')
-
-    # credentials_dict = json.load(f)
+    f = open(os.path.join(path_to_cred, JSON_file))
+    credentials_dict = json.load(f)
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict)
     client = storage.Client(credentials=credentials, project='molten-album-427115-q6')
     bkt = client.get_bucket('test_bucket_abc123')
@@ -389,12 +374,14 @@ def add_photo(user, im, filename, notes = '', f_out = 'Files/Image_raw'):
     fname = get_filename(temp_fname)
     upload_file_g(f_temp, f_id_name_g)
     run_sql(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_fname}', Filename = '{fname}' WHERE ID = {id};")
+    st.cache_data.clear()
     return id
 
 
 
 
 def ann_img_helper(im: Image, model, label_annotator = sv.LabelAnnotator(text_scale = 0.4, text_padding = 1), bounding_box_annotator = sv.BoxCornerAnnotator(), verbose = False, conf_level = 0.05, name_labels = True) -> np.ndarray:
+    # print("Annotating...")
     fix_img = im.convert('RGB')
     np_img = np.array(fix_img)
     cont_img = np.asarray(np_img, dtype=np.uint8)
@@ -453,6 +440,7 @@ def ann_video_helper(input_vid, model, conf_level, out_location = '.', im_width 
     ann_rate = (index / fps) / net_time # ratio of time to annotate versus length of video
     return tot_oysters / index, net_time, out_path, ann_rate
 
+@st.cache_resource
 def get_model(id: int):
     cur_model = run_sql(f"SELECT Filepath, Local_Path FROM models WHERE ID = {id}")[-1]
     download_file_g(cur_model['Filepath'], cur_model['Local_Path'])
@@ -543,6 +531,8 @@ def ann_video(Raw_File_ID, Model_ID, notes = '', f_out = 'Files/Video_ann', thre
 
     upload_file_g(f_local, f_id_name_g)
     
+    st.cache_data.clear()
+
     return id
 
 
@@ -571,7 +561,7 @@ def add_video(name, fpath, fname, notes = '', f_out = 'Files/Video_raw'):
     
 
     run_sql(f"INSERT INTO videos (Raw_File_ID, FPS, Color_Order) VALUES ('{id}', '{fps}', '{color_order}');")
-
+    st.cache_data.clear()
     return id
 
 
@@ -636,6 +626,8 @@ def add_roboflow(name, export_string, f_out = 'Files/Roboflow', load = False, no
     run_sql(f"UPDATE roboflow SET Api_Key = '{api_key_lab}' WHERE ID = {id};")
     
     st.write("All done!")
+    st.cache_data.clear()
+
     return id
 
 def download_weight(path, ver): # one of ['n', 's', 'm', 'b', 'x', 'l']
@@ -693,6 +685,8 @@ def add_model(user, roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out 
     run_sql(f"UPDATE models SET Filepath = '{model_path_g}', Local_Path = '{pts_save_path}' WHERE ID = {id_mod};")
 
     delete_folder('runs')
+    st.cache_data.clear()
+
     return id_mod
 
 
@@ -740,8 +734,10 @@ def get_pub_str(public_user):
 def get_notes_str(notes, name, id):
     return f"{notes}, Owner: {name} ({id})"
 
+@st.cache_data
 def get_files(user, public_user = True):
     public_user_str = get_pub_str(public_user)
+    # print("Accessed SQL for get_files")
     res = run_sql(f"SELECT Filepath, Filename, ID, Username, Notes, Timestamp FROM raw_files WHERE (Username = '{user}' {public_user_str}) AND Filepath != '{REPLACE}';")
     if not res:
         st.write(f"No annotating files are available to user {st.session_state.user}. Please go to the \"Upload Files\" tab first.")
@@ -751,6 +747,7 @@ def get_files(user, public_user = True):
     tstamps = [row['Timestamp'] for row in res]
     return keys, values, tstamps
 
+@st.cache_data
 def get_roboflow(user, public_user = True):
     public_user_str = get_pub_str(public_user)
     res = run_sql(f"SELECT ID, Project, Workspace, Version, Username, Notes, Timestamp FROM roboflow WHERE (Username = '{user}' {public_user_str}) AND Api_Key != '{REPLACE}'")
@@ -759,8 +756,10 @@ def get_roboflow(user, public_user = True):
         return False
     return [f"{row['Workspace']} {row['Project']} v{row['Version']}, Owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res], [row['ID'] for row in res], [row['Timestamp'] for row in res]
 
+@st.cache_data
 def get_models(name, public_user = True):
     public_user_str = get_pub_str(public_user)
+    # print("Accessed SQL for get_models")
     # res = run_sql(f"SELECT * FROM roboflow INNER JOIN models ON roboflow.ID = models.Roboflow_ID WHERE (Username = '{name}'{public_user_str}) AND models.Local_Path != '{REPLACE}' AND roboflow.Api_Key != '{REPLACE}';")
     res = run_sql(f"SELECT * FROM models WHERE (Username = '{name}' {public_user_str}) AND models.Local_Path != '{REPLACE}';")
     if not res:

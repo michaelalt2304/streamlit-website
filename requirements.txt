@@ -18,4 +18,5 @@ streamlit==1.32.0
 supervision==0.21.0
 git+https://github.com/THU-MIG/yolov10.git
 wget==3.2
-streamlit-webrtc
+streamlit-webrtc==0.47.7
+st-pages==0.5.0

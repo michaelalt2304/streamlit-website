@@ -1,8 +1,6 @@
 
 from dep import *
-from streamlit_webrtc import webrtc_streamer
-from streamlit.errors import StreamlitAPIException
-import supervision as sv
+
 try:
     st.set_page_config(
         page_title="Live Annotation",
@@ -32,16 +30,3 @@ if models:
         final_np, _, _, _ = ann_img_helper(img_pil, model_YOLO)
         return av.VideoFrame.from_ndarray(final_np, format="bgr24")
     webrtc_streamer(key="example", video_frame_callback=vfc)
-
-    # val = st.button('Start the webcam')
-#     model = get_model(cur_model)
-#     if val:
-#         camera = cv2.VideoCapture(0)
-#         FRAME_WINDOW = st.image([])
-#         while True:
-#             collected_successfully, frame = camera.read()
-#             if collected_successfully:
-#                 rot_colors = frame[:, :, ::-1]
-#                 pil_frame = Image.fromarray(rot_colors)
-#                 out_np, _, _2, _3 = ann_img_helper(pil_frame, model)
-                # FRAME_WINDOW.image(out_np)

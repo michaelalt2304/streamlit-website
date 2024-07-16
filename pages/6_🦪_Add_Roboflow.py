@@ -1,10 +1,5 @@
 from dep import *
-st.set_page_config(
-    page_title="Add Roboflow",
-    page_icon="🦪",
-)
-
-reprime_user()
+try_page_setup("Add Roboflow")
 
 st.title('Import Roboflow Data')
 st.image('logos/Roboflow_logo.png')

@@ -1,14 +1,8 @@
 import os
-
-# os.system('apt-get update && apt-get install ffmpeg libsm6 libxext6  -y')
-
-
-
 import pandas as pd
 import pymysql
 from pymysql.err import IntegrityError, OperationalError
-
-
+from twilio.rest import Client
 from PIL import Image
 import numpy as np
 import supervision as sv
@@ -85,12 +79,13 @@ def switch_page(page_name: str):
 def show_specific_pages(is_public: bool):
     used_pages = [
             Page("Sign_In.py", "Sign In", "🔑"),
-            Page("pages/1_Live_Annotation.py", "Live Annotation", "📸"),
-            Page("pages/2_Upload_Files.py", "Upload Files", "⬆️"),
-            Page("pages/3_Annotate_Files.py", "Annotate Files", "📝"),
-            Page("pages/4_Gallery.py", "Gallery", "🎆"),
-            Page("pages/5_Add_Roboflow.py", "Add Roboflow", "🤖") if is_public else None,
-            Page("pages/6_Train_Model.py", "Train Model", "🏃‍♂️") if is_public else None
+            Page("pages/1_🦪_Live_Annotation.py", "Live Annotation", "📸"),
+            Page("pages/2_🦪_Upload_Files.py", "Upload Files", "⬆️"),
+            Page("pages/3_🦪_Annotate_Files.py", "Annotate Files", "📝"),
+            Page("pages/4_🦪_Gallery.py", "Gallery", "🎆"),
+            Page("pages/5_🦪_Submit_Feedback.py", "Submit Feedback", "⭐"),
+            Page("pages/6_🦪_Add_Roboflow.py", "Add Roboflow", "🤖") if is_public else None,
+            Page("pages/7_🦪_Train_Model.py", "Train Model", "🏃‍♂️") if is_public else None
                  ]
 
     show_pages([page for page in used_pages if page != None])
@@ -111,7 +106,15 @@ def show_file(id: int, table: str, _container = st):
         elif res['Type'] == 'Video':
             _container.video(res['Local_Path'])
 
-
+def try_page_setup(title):
+    try:
+        reprime_user()
+        st.set_page_config(
+            page_title=title,
+            page_icon="🦪",
+        )
+    except StreamlitAPIException:
+        print("Couldn't label page")
 #################################
 # SQL LANGUAGE HELPER FUNCTIONS #
 #################################
@@ -124,8 +127,6 @@ def reprime_user(home = 'sign in'):
         st.session_state['user'] = GUEST
         switch_page(home)
         # st.write('No user signed in')
-    else:
-        st.write('User:', st.session_state.user)
 
 
 def connect_with_connector() -> sqlalchemy.engine.base.Engine:
@@ -545,6 +546,7 @@ def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_a
     # for idx in range(len(coord)):
     #     coord_cur = coord[idx]
     #     cur.execute(f"INSERT INTO oysters_in_photo (Ann_File_ID, Confidence, X1, Y1, X2, Y2, Class, Class_Index) VALUES ({id}, {conf[idx]}, {coord_cur[0]}, {coord_cur[1]}, {coord_cur[2]}, {coord_cur[3]}, '{names[idx]}', {class_num[idx]});")
+    st.cache_data.clear()
     return id
 
 # ann_img(66, 28)

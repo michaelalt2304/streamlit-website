@@ -1,8 +1,7 @@
 from dep import *
 
+try_page_setup("Gallery")
 
-
-reprime_user()
 st.title("A place to see all your fantastic files")
 
 raw_files = get_raw_files(st.session_state.user, public_user=True)

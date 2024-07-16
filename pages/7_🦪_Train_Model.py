@@ -1,11 +1,6 @@
 from dep import *
 
-st.set_page_config(
-    page_title="Train Model",
-    page_icon="🦪",
-)
-
-reprime_user()
+try_page_setup("Train Model")
 
 roboflow_IDs = get_roboflow(st.session_state.user)
 # print(roboflow_IDs)

@@ -7,7 +7,7 @@ st.set_page_config(
 from dep import *
 
 st.title('Welcome to OddAI: Oyster Development Detection Artificial Intelligence :oyster:')
-st.subheader('Uses a YOLOv10 Backend with support for live detection, video, and image annotation, as well as customized models')
+st.subheader('Uses a YOLOv10 Backend with support for live detection, video, and image annotation')
 
 
 st.session_state.user = GUEST # default is guest

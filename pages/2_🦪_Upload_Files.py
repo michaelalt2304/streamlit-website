@@ -1,11 +1,7 @@
 from dep import *
 
-st.set_page_config(
-    page_title="Upload Files",
-    page_icon="🦪",
-)
+try_page_setup("Upload Files")
 
-reprime_user()
 notes_raw = st.text_input("(Optional) Add notes about this file to better identify it:", max_chars=NOTES_SIZE_LIMIT)
 notes = strip_chars(notes_raw)
 uploaded_file = st.file_uploader("Choose a file")

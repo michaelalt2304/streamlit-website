@@ -1,7 +1,14 @@
+import os
+
+os.system('apt-get update && apt-get install ffmpeg libsm6 libxext6  -y')
+
+
+
 import pandas as pd
 import pymysql
 from pymysql.err import IntegrityError, OperationalError
-import os
+
+
 from PIL import Image
 import numpy as np
 import supervision as sv

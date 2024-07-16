@@ -15,7 +15,7 @@ PyMySQL==1.1.1
 roboflow==1.1.32
 SQLAlchemy==2.0.30
 streamlit==1.32.0
-supervision==0.22.0
+git+https://github.com/roboflow/supervision.git
 git+https://github.com/THU-MIG/yolov10.git
 wget==3.2
 streamlit-webrtc==0.47.7

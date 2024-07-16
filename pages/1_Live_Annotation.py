@@ -21,8 +21,7 @@ except StreamlitAPIException:
 
 st.title("Webcam Live Feed")
 reprime_user()
-def modify_arr(arr):
-    return arr
+
 models = get_models(st.session_state.user)
 if models:
     cur_model = kv_select(models, 'What model would you like to annotate with?', reverse=True)
@@ -35,4 +34,4 @@ if models:
     #     final_np, _, _, _ = ann_img_helper(img_pil, model_YOLO)
     #     return av.VideoFrame.from_ndarray(final_np, format="bgr24")
     # webrtc_streamer(key="example", video_frame_callback=vfc, rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]})
-    webrtc_streamer(key="abc123") # COMMENT OUT THIS LINE, UNCOMMENT ABOVE
+    webrtc_streamer(key="abc123", rtc_configuration={"iceServers": token.ice_servers}) # COMMENT OUT THIS LINE, UNCOMMENT ABOVE

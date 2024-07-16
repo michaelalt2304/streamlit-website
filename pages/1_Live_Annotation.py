@@ -31,9 +31,7 @@ if models:
     def vfc(frame: av.VideoFrame):
         img = frame.to_ndarray(format="bgr24")
         np_flip = img[:,::-1,:]
-        
         img_pil = Image.fromarray(np_flip)
         final_np, _, _, _ = ann_img_helper(img_pil, model_YOLO)
         return av.VideoFrame.from_ndarray(final_np, format="bgr24")
-    webrtc_streamer(key="example", video_frame_callback=vfc, rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
-    })
+    webrtc_streamer(key="example", video_frame_callback=vfc, rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]})

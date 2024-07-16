@@ -77,7 +77,7 @@ def switch_page(page_name: str):
 
 def show_specific_pages(is_public: bool):
     used_pages = [
-            Page("app.py", "Sign In", "🔑"),
+            Page("Sign_In.py", "Sign In", "🔑"),
             Page("pages/1_Live_Annotation.py", "Live Annotation", "📸"),
             Page("pages/2_Upload_Files.py", "Upload Files", "⬆️"),
             Page("pages/3_Annotate_Files.py", "Annotate Files", "📝"),
@@ -593,6 +593,11 @@ def get_fpath_ann(ann_id):
     res = run_sql(f"SELECT Local_Path, Filepath from annotated_files WHERE ID = {ann_id}")[-1]
     download_file_g(res['Filepath'], res['Local_Path'])
     return res['Local_Path']
+
+def get_fpath_raw(id):
+    res = run_sql(f"SELECT Local_Path, Filepath from raw_files WHERE ID = {ann_id}")[-1]
+    download_file_g(res['Filepath'], res['Local_Path'])
+    return res['Local_Path']
 # ann_photo_id = ann_img(id_raw_photo, id_mod)
 
 def download_roboflow(api_key, workspace, project, version, download, location):
@@ -719,16 +724,14 @@ def order_by_second_ls(arr, order_ls): # SORTS BY VALUE, RETURNS A NEW LIST (aga
     def sort_fun(el):
         return order_ls[ARR_CP.index(el)]
     arr_sort.sort(key=sort_fun)
-
-
     return arr_sort
-def generate_random_string(length):
 
+def generate_random_string(length):
     letters = string.ascii_letters + string.digits
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
 
-def kv_select(kvlist, label = "", reverse = False, container = st, key = None):
+def kv_select(kvlist, label = "", reverse = False, container = st):
     KEYS = 0
     VALUES = 1
     SORTING = 2
@@ -739,7 +742,7 @@ def kv_select(kvlist, label = "", reverse = False, container = st, key = None):
         elif len(kvlist) == 3: # includes tstamp/ordering list
             keys_to_select_unrev = order_by_second_ls(kvlist[KEYS], kvlist[SORTING])
             keys_to_select = keys_to_select_unrev[::-1] if reverse else keys_to_select_unrev
-        selected = container.selectbox(label, keys_to_select, key=key, label_visibility= 'visible' if label else 'hidden')
+        selected = container.selectbox(label if label else REPLACE, keys_to_select, label_visibility= 'visible' if label else 'hidden')
         return kvlist[VALUES][kvlist[KEYS].index(selected)]
     else:
         st.write('No values found')
@@ -755,6 +758,7 @@ def get_type_file(ID):
 #########################
 def get_pub_str(public_user):
     return f"OR Username = '{PUBLIC_USER}'" if public_user else ''
+
 def get_notes_str(notes, name, id):
     return f"{notes}, Owner: {name} ({id})"
 
@@ -764,12 +768,25 @@ def get_raw_files(user, public_user = True):
     # print("Accessed SQL for get_files")
     res = run_sql(f"SELECT Filepath, Filename, ID, Username, Notes, Timestamp FROM raw_files WHERE (Username = '{user}' {public_user_str}) AND Filepath != '{REPLACE}';")
     if not res:
-        st.write(f"No annotating files are available to user {st.session_state.user}. Please go to the \"Upload Files\" tab first.")
+        st.write(f"No raw files are available to user {st.session_state.user}. Please go to the \"Upload Files\" tab first.")
         return False
     keys = [f"{row['Filename']}, Owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res]
     values = [row['ID'] for row in res]
     tstamps = [row['Timestamp'] for row in res]
     return keys, values, tstamps
+
+@st.cache_data
+def get_ann_files(user, public_user = True):
+    public_user_str = get_pub_str(public_user)
+    res = run_sql(f"SELECT annotated_files.ID as ID, annotated_files.Filepath as Filepath, Confidence_Threshold, Username, annotated_files.Timestamp as Timestamp, annotated_files.Notes as Notes FROM annotated_files LEFT JOIN raw_files ON annotated_files.Raw_File_ID = raw_files.ID WHERE (Username = '{user}' {public_user_str}) AND test_4.annotated_files.Filepath != '{REPLACE}';")
+    if not res:
+        st.write(f"No annotated files are available to user {st.session_state.user}. Please go to the \"Annotate Files\" tab first.")
+        return False
+    keys = [f"{get_filename(row['Filepath'])}, Owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res]
+    values = [row['ID'] for row in res]
+    tstamps = [row['Timestamp'] for row in res]
+    return keys, values, tstamps
+
 
 @st.cache_data
 def get_roboflow(user, public_user = True):
@@ -779,7 +796,6 @@ def get_roboflow(user, public_user = True):
         st.write(f"No Roboflow details added yet for user {st.session_state.user}. Please do so on the \"Add Roboflow\" tab first.")
         return False
     return [f"{row['Workspace']} {row['Project']} v{row['Version']}, Owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res], [row['ID'] for row in res], [row['Timestamp'] for row in res]
-
 @st.cache_data
 def get_models(name, public_user = True):
     public_user_str = get_pub_str(public_user)
@@ -793,3 +809,4 @@ def get_models(name, public_user = True):
     all_mods_values = [row['ID'] for row in res]
     all_mods_tstamps = [row['Timestamp'] for row in res]
     return mod_names_keys, all_mods_values, all_mods_tstamps
+

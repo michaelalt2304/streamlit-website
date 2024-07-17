@@ -115,6 +115,15 @@ def try_page_setup(title):
         )
     except StreamlitAPIException:
         print("Couldn't label page")
+
+
+def get_null_or_val(s: str):
+    return "'" + strip_chars(s)  + "'" if s else 'NULL'
+
+def get_rating(msg, cont = st):
+    r = cont.slider(msg, min_value = 0, max_value=10, value=0, step=1)
+    return r
+
 #################################
 # SQL LANGUAGE HELPER FUNCTIONS #
 #################################
@@ -414,7 +423,7 @@ def add_photo(user, im, filename, notes = '', f_out = 'Files/Image_raw'):
     fsize = os.stat(f_temp).st_size
     ext = get_ext(f_temp)
     
-    run_sql(f"INSERT INTO raw_files (Username, Filepath, Filename, Local_Path, Size, Type, Extension, Notes, Width, Height, Timestamp) VALUES ('{user}', '{REPLACE}', '{REPLACE}', '{REPLACE}', {fsize}, 'Image', '{ext}', '{notes}', {width}, {height}, CURRENT_TIMESTAMP);")
+    run_sql(f"INSERT INTO raw_files (Username, Size, Type, Extension, Notes, Width, Height, Timestamp) VALUES ('{user}', {fsize}, 'Image', '{ext}', '{notes}', {width}, {height}, CURRENT_TIMESTAMP);")
     id = get_REPLACE_ID(table='raw_files', column_rep='Filepath')
 
     f_id_name_g = get_id_fname(f_out, f_temp, id)
@@ -523,7 +532,7 @@ def ann_img(Raw_File_ID, Model_ID, threshold, notes = '', f_out = 'Files/Image_a
     raw_filepath = get_raw_fpath(Raw_File_ID)
 
     annot, num_oysters, tot_time, end_ann_data = ann_img_helper(im, model, conf_level = threshold / 100, name_labels=name_labels)
-    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Confidence_Threshold, Name_Labels, Filepath, Time_to_Annotate, Notes, Timestamp) VALUES ('{Raw_File_ID}', '{Model_ID}', {threshold}, {name_labels}, '{REPLACE}', '{tot_time}', '{notes}', CURRENT_TIMESTAMP);")
+    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Confidence_Threshold, Name_Labels, Time_to_Annotate, Notes, Timestamp) VALUES ('{Raw_File_ID}', '{Model_ID}', {threshold}, {name_labels}, '{tot_time}', '{notes}', CURRENT_TIMESTAMP);")
     id = get_REPLACE_ID(table='annotated_files', column_rep='Filepath')
     f_id_name_g = get_id_fname(f_out, raw_filepath, id)
     f_local = get_temp_fname(f_id_name_g)
@@ -564,7 +573,7 @@ def ann_video(Raw_File_ID, Model_ID, notes = '', f_out = 'Files/Video_ann', thre
 
     avg_oysters, time_s, out_path, ann_rate = ann_video_helper(raw_filepath, model, out_location = temp_folder, conf_level = threshold / 100, name_labels=name_labels)
 
-    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Filepath, Name_Labels, Time_to_Annotate, Notes, Confidence_Threshold, Timestamp, Local_Path) VALUES ('{Raw_File_ID}', '{Model_ID}', '{REPLACE}', {name_labels}, '{time_s * 1000}', '{notes}', {threshold}, CURRENT_TIMESTAMP, '{REPLACE}');")
+    run_sql(f"INSERT INTO annotated_files (Raw_File_ID, Model_ID, Name_Labels, Time_to_Annotate, Notes, Confidence_Threshold, Timestamp) VALUES ('{Raw_File_ID}', '{Model_ID}', {name_labels}, '{time_s * 1000}', '{notes}', {threshold}, CURRENT_TIMESTAMP);")
 
     id = get_REPLACE_ID(table='annotated_files', column_rep='Filepath')
 
@@ -589,7 +598,9 @@ def add_video(name, fpath, fname, notes = '', f_out = 'Files/Video_raw'):
     '''
     Returns: Index of added video if successful, 0 if not
     '''
-    run_sql(f"INSERT INTO raw_files (Username, Filepath, Filename, Local_Path, Size, Type, Extension, Notes, Width, Height, Timestamp) VALUES ('{name}', '{REPLACE}', '{REPLACE}', '{REPLACE}', {0}, 'Video', '{REPLACE}', '{notes}', {0}, {0}, CURRENT_TIMESTAMP);")
+    fsize = os.stat(fpath).st_size
+    ext = get_ext(fpath)
+    run_sql(f"INSERT INTO raw_files (Username, Size, Type, Extension, Notes, Timestamp) VALUES ('{name}', {fsize}, 'Video', '{ext}', '{notes}', CURRENT_TIMESTAMP);")
     id = get_REPLACE_ID(table='raw_files', column_rep='Filepath')
     f_id_name_g = get_id_fname(f_out, fname, id)
     temp_path = get_temp_fname(f_id_name_g)
@@ -599,16 +610,9 @@ def add_video(name, fpath, fname, notes = '', f_out = 'Files/Video_raw'):
     cap = cv2.VideoCapture(temp_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fsize = os.stat(temp_path).st_size
-    ext = get_ext(temp_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
-    run_sql(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_path}', Filename = '{fname}', Size = {fsize}, Width = {width}, Height = {height}, Extension = '{ext}' WHERE ID = {id};")
-
-    
+    run_sql(f"UPDATE raw_files SET Filepath = '{f_id_name_g}', Local_Path = '{temp_path}', Filename = '{fname}', Width = {width}, Height = {height} WHERE ID = {id};")
     color_order = 'RGB' # FIXME - cant figure out how to extract from cv2 object
-    
-    
-
     run_sql(f"INSERT INTO videos (Raw_File_ID, FPS, Color_Order) VALUES ('{id}', '{fps}', '{color_order}');")
     st.cache_data.clear()
     return id
@@ -621,13 +625,11 @@ def get_fpath_ann(ann_id):
     return res['Local_Path']
 
 def get_fpath_raw(id):
-    res = run_sql(f"SELECT Local_Path, Filepath from raw_files WHERE ID = {ann_id}")[-1]
+    res = run_sql(f"SELECT Local_Path, Filepath from raw_files WHERE ID = {id}")[-1]
     download_file_g(res['Filepath'], res['Local_Path'])
     return res['Local_Path']
-# ann_photo_id = ann_img(id_raw_photo, id_mod)
 
 def download_roboflow(api_key, workspace, project, version, download, location):
-    # if not os.path.exists(folder_roboflow):
     with st.spinner(f"Loading RoboFlow data from {workspace}"):
         rf = Roboflow(api_key = api_key)
         project = rf.workspace(workspace).project(project)
@@ -671,7 +673,7 @@ def add_roboflow(name, export_string, f_out = 'Files/Roboflow', load = False, no
     
     upload_folder_g(f_temp, folder_g)
     
-    run_sql(f"INSERT INTO roboflow (Api_Key, Workspace, Project, Version, Download, Local_Path, Username, Notes, Timestamp) VALUES ('{REPLACE}', '{workspace_lab}', '{project_lab}', '{version_lab}', '{download_lab}', '{f_temp}', '{name}', '{notes}', CURRENT_TIMESTAMP);")
+    run_sql(f"INSERT INTO roboflow (Workspace, Project, Version, Download, Local_Path, Username, Notes, Timestamp) VALUES ('{workspace_lab}', '{project_lab}', '{version_lab}', '{download_lab}', '{f_temp}', '{name}', '{notes}', CURRENT_TIMESTAMP);")
     
     id = get_REPLACE_ID(table='roboflow', column_rep='Api_Key')
     
@@ -715,16 +717,15 @@ def add_model(user, roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out 
     height = im.size[1]
     delete_folder('runs')
 
-    run_sql(f"""INSERT INTO models (Username, Timestamp, Filepath, Local_Path, Version, 
+    run_sql(f"""INSERT INTO models (Username, Timestamp, Version, 
                  Hyperparams, Epoch, Batch, Model_Type, Width_Training_Images, Height_Training_Images, 
-                 Size, Roboflow_ID, Notes) values ('{user}', CURRENT_TIMESTAMP, '{REPLACE}', '{REPLACE}', 
+                 Size, Roboflow_ID, Notes) values ('{user}', CURRENT_TIMESTAMP, 
                  10, NULL, {epochs}, {batch}, 'YOLO', {width}, {height}, '{size_mod}', {roboflow_ID}, 
                  '{notes}')""")
     
     id_mod = get_REPLACE_ID(table='models', column_rep='Filepath')
     pts_name = f'{id_mod}.pt'
     model_path_g = os.path.join(f_out, pts_name)
-    # 
     pts_save_path = os.path.join(temp_folder, pts_name)
     temp_train_path = f"Run_{id_mod}"
 
@@ -735,9 +736,7 @@ def add_model(user, roboflow_ID, size_mod = 'n', epochs = 10, batch = 32, f_out 
     orig_pts_path = os.path.join('runs', 'detect', temp_train_path, 'weights', 'best.pt')
     upload_file_g(orig_pts_path, model_path_g)
     os.rename(orig_pts_path, pts_save_path) # for later inference, on computer because people will likely want the model then
-    
     run_sql(f"UPDATE models SET Filepath = '{model_path_g}', Local_Path = '{pts_save_path}' WHERE ID = {id_mod};")
-
     delete_folder('runs')
     st.cache_data.clear()
 
@@ -791,7 +790,6 @@ def get_notes_str(notes, name, id):
 @st.cache_data
 def get_raw_files(user, public_user = True):
     public_user_str = get_pub_str(public_user)
-    # print("Accessed SQL for get_files")
     res = run_sql(f"SELECT Filepath, Filename, ID, Username, Notes, Timestamp FROM raw_files WHERE (Username = '{user}' {public_user_str}) AND Filepath != '{REPLACE}';")
     if not res:
         st.write(f"No raw files are available to user {st.session_state.user}. Please go to the \"Upload Files\" tab first.")

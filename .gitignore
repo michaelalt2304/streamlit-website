@@ -4,3 +4,4 @@ Runs/
 __pycache__
 runs/
 *.pyc
+*.pt

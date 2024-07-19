@@ -11,21 +11,42 @@ create table people
     Time_Created timestamp   not null
 );
 
+create table feedback
+(
+    Username                 varchar(64)   not null,
+    Rating_Overall           int           null,
+    Rating_UI                int           null,
+    Rating_Ease_Of_Use       int           null,
+    Rating_Applicability     int           null,
+    Rating_Speed             int           null,
+    Rating_Live_Annotation   int           null,
+    Rating_File_Upload       int           null,
+    Rating_Annotating_Files  int           null,
+    Rating_Gallery           int           null,
+    Bugs                     varchar(2048) null,
+    Additional_Comments      varchar(2048) null,
+    Timestamp                timestamp     not null,
+    Additional_Functionality varchar(2048) null,
+    How_Use                  varchar(2048) null,
+    constraint feedback_people_Username_fk
+        foreign key (Username) references people (Username)
+);
+
 create table raw_files
 (
     ID         int auto_increment
         primary key,
-    Username   varchar(64)   not null,
-    Filepath   varchar(2048) not null,
-    Size       varchar(64)   not null,
-    Type       varchar(64)   not null,
-    Extension  varchar(64)   not null,
-    Notes      varchar(2048) not null,
-    Width      int           not null,
-    Height     int           not null,
-    Timestamp  timestamp     not null,
-    Local_Path varchar(2048) not null,
-    Filename   varchar(64)   not null,
+    Username   varchar(64)                     not null,
+    Filepath   varchar(2048) default 'REPLACE' not null,
+    Size       varchar(64)                     not null,
+    Type       varchar(64)                     not null,
+    Extension  varchar(64)                     not null,
+    Notes      varchar(2048)                   not null,
+    Width      int                             not null,
+    Height     int                             not null,
+    Timestamp  timestamp                       not null,
+    Local_Path varchar(2048) default 'REPLACE' not null,
+    Filename   varchar(64)   default 'REPLACE' not null,
     constraint username_2
         foreign key (Username) references people (Username)
 );
@@ -37,14 +58,15 @@ create table roboflow
 (
     ID         int auto_increment
         primary key,
-    Api_Key    varchar(64)   not null,
-    Workspace  varchar(64)   not null,
-    Project    varchar(64)   not null,
-    Version    int           not null,
-    Download   varchar(64)   not null,
-    Username   varchar(64)   not null,
-    Timestamp  timestamp     not null,
-    Local_Path varchar(2048) not null,
+    Api_Key    varchar(64) default 'REPLACE' not null,
+    Workspace  varchar(64)                   not null,
+    Project    varchar(64)                   not null,
+    Version    int                           not null,
+    Download   varchar(64)                   not null,
+    Username   varchar(64)                   not null,
+    Timestamp  timestamp                     not null,
+    Local_Path varchar(2048)                 not null,
+    Notes      varchar(2048)                 not null,
     constraint roboflow_ibfk_1
         foreign key (Username) references people (Username)
 );
@@ -53,39 +75,44 @@ create table models
 (
     ID                     int auto_increment
         primary key,
-    Timestamp              timestamp     not null,
-    Filepath               varchar(64)   not null,
-    Version                int           not null,
-    Hyperparams            varchar(2048) null,
-    Model_Type             varchar(64)   not null,
-    Width_Training_Images  int           not null,
-    Height_Training_Images int           not null,
-    Roboflow_ID            int           not null,
-    Epoch                  int           null,
-    Batch                  int           null,
-    Size                   varchar(1)    not null,
-    Local_Path             varchar(2048) not null,
+    Timestamp              timestamp                       not null,
+    Filepath               varchar(64)   default 'REPLACE' not null,
+    Version                int                             not null,
+    Hyperparams            varchar(2048)                   null,
+    Model_Type             varchar(64)                     not null,
+    Width_Training_Images  int                             not null,
+    Height_Training_Images int                             not null,
+    Roboflow_ID            int                             not null,
+    Epoch                  int                             null,
+    Batch                  int                             null,
+    Size                   varchar(1)                      not null,
+    Local_Path             varchar(2048) default 'REPLACE' not null,
+    Notes                  varchar(2048)                   not null,
+    Username               varchar(64)                     not null,
+    constraint models_people_Username_fk
+        foreign key (Username) references people (Username),
     constraint models_roboflow_Roboflow_ID_fk
         foreign key (Roboflow_ID) references roboflow (ID)
 );
 
 create table annotated_files
 (
-    Raw_File_ID          int                          not null,
-    Model_ID             int                          not null,
-    Filepath             varchar(2048)                not null,
-    Time_to_Annotate     float                        not null,
-    Notes                varchar(2048)                null,
+    Raw_File_ID          int                             not null,
+    Model_ID             int                             not null,
+    Filepath             varchar(2048) default 'REPLACE' not null,
+    Time_to_Annotate     float                           not null,
+    Notes                varchar(2048)                   null,
     ID                   int auto_increment
         primary key,
-    Timestamp            timestamp                    not null,
-    Confidence_Threshold int                          not null,
-    Local_Path           varchar(2048) default 'REPL' not null,
+    Timestamp            timestamp                       not null,
+    Confidence_Threshold int                             not null,
+    Local_Path           varchar(2048) default 'REPLACE' not null,
+    Name_Labels          tinyint(1)                      not null,
     constraint annotated_files_pk
-        unique (Model_ID, Confidence_Threshold, Raw_File_ID),
-    constraint annotated_files_models_Model_ID_fk
+        unique (Model_ID, Raw_File_ID, Confidence_Threshold, Name_Labels),
+    constraint annotated_files_models_ID_fk
         foreign key (Model_ID) references models (ID),
-    constraint annotated_files_raw_files_Raw_File_ID_fk
+    constraint annotated_files_raw_files_ID_fk
         foreign key (Raw_File_ID) references raw_files (ID)
 );
 
@@ -134,4 +161,6 @@ create table videos
     constraint videos_raw_files_Raw_File_ID_fk
         foreign key (Raw_File_ID) references raw_files (ID)
 );
+
+
 

@@ -1,4 +1,3 @@
-
 av==12.1.0
 gcloud==0.18.3
 google-api-python-client==1.6
@@ -6,8 +5,7 @@ cloud-sql-python-connector[pymysql]
 httplib2==0.15.0
 huggingface_hub==0.23.3
 opencv-python-headless
-numpy==1.24.4
-
+numpy==1.21.2
 oauth2client==4.1.3
 opencv_python_headless==4.8.0.74
 pandas==2.0.3
@@ -17,7 +15,7 @@ PyMySQL==1.1.1
 roboflow==1.1.32
 SQLAlchemy==2.0.30
 streamlit==1.36.0
-git+https://github.com/roboflow/supervision.git
+roboflow==0.22.0
 git+https://github.com/THU-MIG/yolov10.git
 wget==3.2
 streamlit-webrtc==0.47.7

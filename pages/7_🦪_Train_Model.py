@@ -11,7 +11,7 @@ if roboflow_IDs:
     roboflow_ID = kv_select(roboflow_IDs, label = 'What roboflow model do you want to use?', reverse=True)
     model_size = kv_select((MODEL_SIZE_DESC_ARRAY, MODEL_SIZE_ARRAY), label = 'What size do you want your model to be?', reverse = False)
 
-    epoch_st = st.slider('Epochs', min_value=1, max_value=20, value=2, step=1) #FIXME - Default should be higher, low for testing
+    epoch_st = st.slider('Epochs', min_value=1, max_value=200, value=150, step=1)
     batch_st = st.select_slider('Batch Size', options = [2**i for i in range(0, 4 + 1)], value = 8)
     notes_raw = st.text_input("(Optional) Add notes about this model to better identify it:", max_chars=NOTES_SIZE_LIMIT)
     notes = strip_chars(notes_raw)

@@ -14,24 +14,27 @@ if uploaded_file is not None:
     # st.write(uploaded_file)
     # st.write(type_file)
     fname = uploaded_file.name
-    if type_file == 'image':
-        img = Image.open(io.BytesIO(uploaded_file.getvalue()))
+    try:
+        if type_file == 'image':
+            img = Image.open(io.BytesIO(uploaded_file.getvalue()))
 
-        # img.show()
-        st.image(img, caption = "Uploaded image")
-        raw_photo_id = add_photo(st.session_state.user, img, fname, notes = notes)
-        st.write(f"Added photo with ID = {raw_photo_id}")
-    elif type_file == 'video':
-        # st.write("Here")
-        vid_data = io.BytesIO(uploaded_file.getvalue())
-        fpath = os.path.join(temp_folder, generate_random_string(15) + '.' + ext)
-        
-        with st.spinner('Saving video'):
-            with open(fpath, 'wb') as f:
-                f.write(vid_data.getbuffer())
-            st.video(fpath)
-            id_vid = add_video(st.session_state.user, fpath, fname, notes = notes)
-        st.write(f"Added video with ID = {id_vid}")
+            # img.show()
+            st.image(img, caption = "Uploaded image")
+            raw_photo_id = add_photo(st.session_state.user, img, fname, notes = notes)
+            st.write(f"Added photo with ID = {raw_photo_id}")
+        elif type_file == 'video':
+            # st.write("Here")
+            vid_data = io.BytesIO(uploaded_file.getvalue())
+            fpath = os.path.join(temp_folder, generate_random_string(15) + '.' + ext)
+            
+            with st.spinner('Saving video'):
+                with open(fpath, 'wb') as f:
+                    f.write(vid_data.getbuffer())
+                st.video(fpath)
+                id_vid = add_video(st.session_state.user, fpath, fname, notes = notes)
+            st.write(f"Added video with ID = {id_vid}")
+    except Exception:
+        st.write(Exception)
         
 
 

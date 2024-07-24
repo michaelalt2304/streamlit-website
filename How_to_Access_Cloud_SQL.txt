@@ -1,0 +1,41 @@
+All steps are from the very helpful DataGrip site:
+https://www.jetbrains.com/help/datagrip/connect-to-google-cloud-sql-instances.html#step-1-run-the-cloud-sql-proxy-client
+
+First, install Datagrip (technically unnecessary, but it has nice data visualizations):
+https://www.jetbrains.com/help/datagrip/installation-guide.html
+
+Next, install Google Cloud CLI:
+https://cloud.google.com/sdk/docs/install
+
+Then, set up Google Cloud:
+./google-cloud-sdk/bin/gcloud init 
+(follow prompts)
+
+./google-cloud-sdk/bin/gcloud auth login
+(go to Chrome, sign into google account)
+
+./google-cloud-sdk/bin/gcloud auth application-default login
+(essentially the same as before
+
+Ask me to add your Google account to the cloud
+
+THEN, install Cloud SQL Proxy Client.
+Link: https://cloud.google.com/sql/docs/mysql/connect-instance-auth-proxy#linux-64-bit
+but steps are essentially as below
+
+Run on a console in your Desktop
+
+curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.4/cloud-sql-proxy.linux.amd64
+
+and
+
+chmod +x cloud-sql-proxy
+
+Now, start up server with
+
+./cloud-sql-proxy --port 3306 molten-album-427115-q6:us-central1:oyster1
+
+If you get authenciation errors, check that you have followed all cloud steps above.
+
+Now, go into DataGrip, click + under Database Explorer, select Datasource -> mySQL -> mySQL, then user as root, password as dbuserdbuser. That should be all! In addition, running commands in the Jupyter notebook should automatically be sent to the cloud (after changing port to 3306).
+

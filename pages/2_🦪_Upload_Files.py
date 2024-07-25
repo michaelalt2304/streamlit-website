@@ -34,7 +34,8 @@ if uploaded_file is not None:
                 id_vid = add_video(st.session_state.user, fpath, fname, notes = notes)
             st.write(f"Added video with ID = {id_vid}")
     except Exception:
-        st.write(Exception)
+        print(Exception)
+        st.write('An error has occurred. Please go back to the sign in page.')
         
 
 

@@ -1,9 +1,9 @@
-drop schema if exists test_4;
-create schema test_4;
+create schema if not exists test_4;
 use test_4;
 
 
-create table people
+
+create table if not exists people
 (
     Username     varchar(64) not null
         primary key,
@@ -11,7 +11,7 @@ create table people
     Time_Created timestamp   not null
 );
 
-create table feedback
+create table if not exists feedback
 (
     Username                 varchar(64)   not null,
     Rating_Overall           int           null,
@@ -32,7 +32,7 @@ create table feedback
         foreign key (Username) references people (Username)
 );
 
-create table raw_files
+create table if not exists raw_files
 (
     ID         int auto_increment
         primary key,
@@ -42,8 +42,8 @@ create table raw_files
     Type       varchar(64)                     not null,
     Extension  varchar(64)                     not null,
     Notes      varchar(2048)                   not null,
-    Width      int                             not null,
-    Height     int                             not null,
+    Width      int           default 0         not null,
+    Height     int           default 0         not null,
     Timestamp  timestamp                       not null,
     Local_Path varchar(2048) default 'REPLACE' not null,
     Filename   varchar(64)   default 'REPLACE' not null,
@@ -51,10 +51,7 @@ create table raw_files
         foreign key (Username) references people (Username)
 );
 
-create index raw_files_people_Username_fk
-    on raw_files (Username);
-
-create table roboflow
+create table if not exists roboflow
 (
     ID         int auto_increment
         primary key,
@@ -71,7 +68,7 @@ create table roboflow
         foreign key (Username) references people (Username)
 );
 
-create table models
+create table if not exists models
 (
     ID                     int auto_increment
         primary key,
@@ -95,7 +92,7 @@ create table models
         foreign key (Roboflow_ID) references roboflow (ID)
 );
 
-create table annotated_files
+create table if not exists annotated_files
 (
     Raw_File_ID          int                             not null,
     Model_ID             int                             not null,
@@ -108,15 +105,13 @@ create table annotated_files
     Confidence_Threshold int                             not null,
     Local_Path           varchar(2048) default 'REPLACE' not null,
     Name_Labels          tinyint(1)                      not null,
-    constraint annotated_files_pk
-        unique (Model_ID, Raw_File_ID, Confidence_Threshold, Name_Labels),
     constraint annotated_files_models_ID_fk
         foreign key (Model_ID) references models (ID),
     constraint annotated_files_raw_files_ID_fk
         foreign key (Raw_File_ID) references raw_files (ID)
 );
 
-create table annotated_photos
+create table if not exists annotated_photos
 (
     Ann_File_ID       int not null
         primary key,
@@ -125,17 +120,19 @@ create table annotated_photos
         foreign key (Ann_File_ID) references annotated_files (ID)
 );
 
-create table annotated_videos
+create table if not exists annotated_videos
 (
-    Ann_File_ID               int        not null,
-    Annotation_Rate           float      null,
-    Tracing                   tinyint(1) null,
-    Average_Number_of_Oysters float      not null,
+    Ann_File_ID               int                  not null,
+    Annotation_Rate           float                null,
+    Tracing                   tinyint(1)           null,
+    Average_Number_of_Oysters float                not null,
+    Fast_Annotation           tinyint(1) default 0 not null,
+    Frame_Difference_Factor   float      default 1 not null,
     constraint annotated_videos_annotated_files_ID_fk
         foreign key (Ann_File_ID) references annotated_files (ID)
 );
 
-create table oysters_in_photo
+create table if not exists oysters_in_photo
 (
     Ann_File_ID int         not null,
     Confidence  float       not null,
@@ -149,10 +146,9 @@ create table oysters_in_photo
         foreign key (Ann_File_ID) references annotated_photos (Ann_File_ID)
 );
 
-create index Username
-    on roboflow (Username);
+CALL add_index('Username', 'roboflow', 'Username');
 
-create table videos
+create table if not exists videos
 (
     Raw_File_ID int        not null
         primary key,
@@ -161,6 +157,8 @@ create table videos
     constraint videos_raw_files_Raw_File_ID_fk
         foreign key (Raw_File_ID) references raw_files (ID)
 );
+
+
 
 
 

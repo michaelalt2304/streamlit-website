@@ -24,7 +24,6 @@ import io
 import string
 import random
 from google.cloud.sql.connector import Connector, IPTypes
-import pymysql
 import sqlalchemy
 from sqlalchemy.sql import text
 from streamlit.runtime.scriptrunner import RerunData, RerunException
@@ -37,10 +36,17 @@ from typing import Tuple
 temp_folder = os.path.join('.', 'Files_local')
 temp_weights = os.path.join(temp_folder, 'Weights')
 
+#########################################
+################ MACROS #################
+#########################################
 
+# SQL CREDENTIALS #
+INSTANCE_CONNECTION_NAME = "molten-album-427115-q6:us-central1:oyster1"  # e.g. 'project:region:instance'
+DB_USER = 'root'  # e.g. 'my-db-user'
+DB_PASS = 'dbuserdbuser'  # e.g. 'my-db-password'
+DB_NAME = 'test_4'  # e.g. 'my-database'
+###################
 
-db_main = 'test_4'
-# cur_name = 'ab'
 REPLACE = 'REPLACE'
 PUBLIC_USER = 'Public'
 VIDEO = 'Video'
@@ -54,9 +60,9 @@ ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';', '(', ')', '[', ']', '{', '}']
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "./application_default_credentials.json"
 SQL_CREDENTIALS = "molten-album-427115-q6-212e6f039268.json"
 
-##############################
-# STREAMLIT HELPER FUNCTIONS #
-##############################
+##################################################################
+################### STREAMLIT HELPER FUNCTIONS ###################
+##################################################################
 
 def switch_page(page_name: str):
     def standardize_name(name: str) -> str:
@@ -118,6 +124,9 @@ def try_page_setup(title):
         )
     except StreamlitAPIException:
         print("Couldn't label page")
+
+
+
 #################################
 # SQL LANGUAGE HELPER FUNCTIONS #
 #################################
@@ -143,10 +152,6 @@ def connect_with_connector() -> sqlalchemy.engine.base.Engine:
     # Cloud Secret Manager (https://cloud.google.com/secret-manager) to help
     # keep secrets safe.
 
-    instance_connection_name = "molten-album-427115-q6:us-central1:oyster1"  # e.g. 'project:region:instance'
-    db_user = 'root'  # e.g. 'my-db-user'
-    db_pass = 'dbuserdbuser'  # e.g. 'my-db-password'
-    db_name = 'test_4'  # e.g. 'my-database'
 
     ip_type = IPTypes.PUBLIC
 
@@ -154,11 +159,11 @@ def connect_with_connector() -> sqlalchemy.engine.base.Engine:
 
     def getconn() -> pymysql.connections.Connection:
         conn: pymysql.connections.Connection = connector.connect(
-            instance_connection_name,
+            INSTANCE_CONNECTION_NAME,
             "pymysql",
-            user=db_user,
-            password=db_pass,
-            db=db_name,
+            user=DB_USER,
+            password=DB_PASS,
+            db=DB_NAME,
         )
         return conn
 
@@ -168,6 +173,7 @@ def connect_with_connector() -> sqlalchemy.engine.base.Engine:
         # ...
     )
     return pool
+
 en = connect_with_connector()
 
 def run_sql(prompt: str, write = False):
@@ -184,6 +190,26 @@ def run_sql(prompt: str, write = False):
         else:
             con.commit()
 
+@st.cache_resource
+def apply_ddl():    
+    ddl_list = []
+    with open("etc/oyster_project.ddl") as f:
+        for line in f:
+            ddl_list.append(line[:-1])
+    ddl_proc = []
+    with open('etc/oyster_project_procedure.ddl') as g:
+        for line in g:
+            ddl_proc.append(line[:-1])
+
+    table_sql = "".join(ddl_list).rsplit(';')
+    procedure_sql = "\n".join(ddl_proc)
+    run_sql(procedure_sql)
+
+    for statement in table_sql:
+        if statement:
+            run_sql(statement)
+
+apply_ddl()
 
 
 ###########################
@@ -491,7 +517,7 @@ def ann_video_helper(input_vid: str, model, conf_level: float, out_location = '.
             tot_oysters += num_oysters
             frame_out = av.VideoFrame.from_ndarray(an_mg, format='bgr24')
             end_fr = time()
-            print(end_fr - start_fr)
+            # print(end_fr - start_fr)
             if index == 1:
                 time_fr = end_fr - start_fr
                 freq_fr = 1 / time_fr if fast_ann else fps
@@ -511,7 +537,7 @@ def ann_video_helper(input_vid: str, model, conf_level: float, out_location = '.
     outp.close()
 
     container.close()
-    print(os.path.exists(out_path))
+    # print(os.path.exists(out_path))
     ann_rate = (index / fps) / net_time # ratio of time to annotate versus length of video
     #1 / fr_diff_factor percentage of frames annotated, will be lower if using fast_ann
     return tot_oysters * fr_diff_factor / index, net_time, out_path, ann_rate, fr_diff_factor

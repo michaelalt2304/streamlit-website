@@ -455,6 +455,7 @@ def ann_img_helper(im: Image, model, label_annotator = sv.LabelAnnotator(text_sc
 
 def ann_video_helper(input_vid: str, model, conf_level: float, out_location = '.', im_width = 416, im_height = 416, name_labels = True, fast_ann = True) -> Tuple[float, float, str, float, float]:
     # NOTE - will crash if video length is exactly 1 frame due to fast_ann implementation. Downgrade to where you no longer have this message to prevent the issue.
+    # FIXME - Frame rate messed up
     tot_oysters = 0
     
     container = av.open(input_vid)
@@ -465,11 +466,22 @@ def ann_video_helper(input_vid: str, model, conf_level: float, out_location = '.
     out_path = os.path.join(out_location, f'{fname[:per_index]}_annotated.{ext}')
     codec_name = stream_vid.codec_context.name
     fps = stream_vid.codec_context.rate
+
+
+    outp = av.open(out_path, 'w')
+    output_stream = outp.add_stream(codec_name, fps) # f"{int(fps*1000)}/1001"
+    output_stream.width = im_width
+    output_stream.height = im_height
+    output_stream.pix_fmt = stream_vid.codec_context.pix_fmt
+
+
+
+   
     start_overall = time()
     fr_diff_factor = 1
     for index, frame in enumerate(container.decode(stream_vid)):
         if index % fr_diff_factor < 1: # as close to zero as you are going to get
-            start_fr = time() if index == 1 else None
+            start_fr = time()
             pil_img = frame.to_image()
             np_img = np.array(pil_img)
             np_img_resize = cv2.resize(np_img, (im_width, im_height))
@@ -478,25 +490,28 @@ def ann_video_helper(input_vid: str, model, conf_level: float, out_location = '.
             an_mg, num_oysters, _, _ = ann_img_helper(small_pil_img, model, conf_level = conf_level, name_labels=name_labels)
             tot_oysters += num_oysters
             frame_out = av.VideoFrame.from_ndarray(an_mg, format='bgr24')
-            end_fr = time() if index == 1 else None
+            end_fr = time()
+            print(end_fr - start_fr)
             if index == 1:
                 time_fr = end_fr - start_fr
                 freq_fr = 1 / time_fr if fast_ann else fps
                 fr_diff_factor = float(fps + 2.427243e-10) / freq_fr if fast_ann else 1
                 # print(freq_fr, str(fps))
-                outp = av.open(out_path, 'w')
-                output_stream = outp.add_stream(codec_name, f"{int(freq_fr*1000)}/1001")
-                output_stream.width = im_width
-                output_stream.height = im_height
-                output_stream.pix_fmt = stream_vid.codec_context.pix_fmt
+                
+
             if index != 0: # first frame takes longer for some reason, so discard it
                 pkt = output_stream.encode(frame_out)
                 outp.mux(pkt)
         
     end_overall = time()
     net_time = end_overall - start_overall
-    container.close()
+
+    packet = output_stream.encode(None)
+    outp.mux(packet)
     outp.close()
+
+    container.close()
+    print(os.path.exists(out_path))
     ann_rate = (index / fps) / net_time # ratio of time to annotate versus length of video
     #1 / fr_diff_factor percentage of frames annotated, will be lower if using fast_ann
     return tot_oysters * fr_diff_factor / index, net_time, out_path, ann_rate, fr_diff_factor

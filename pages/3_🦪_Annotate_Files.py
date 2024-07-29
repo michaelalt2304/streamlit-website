@@ -6,12 +6,9 @@ all_user_files = get_raw_files(st.session_state.user, public_user = True)
 models = get_models(st.session_state.user, public_user = True)
 if all_user_files and models:
     cur_file = kv_select(all_user_files, 'What file would you like to annotate?', reverse=True)
-    # st.write('You selected:', cur_file)
     f_type = get_type_file(cur_file)
-    # st.write(f_type)
 
     cur_model = kv_select(models, 'What model would you like to annotate with?', reverse=True)
-    # st.write('You selected:', cur_model)
     name_labels = kv_select([['Names', 'Confidence Scores'], TF], 'What would you like to see as the annotations?')
     threshold = st.slider('Minimum Confidence Score (%)', min_value=5, max_value=50, value=20, step=5)
 

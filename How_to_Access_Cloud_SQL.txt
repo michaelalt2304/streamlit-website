@@ -35,6 +35,9 @@ Now, start up server with
 
 ./cloud-sql-proxy --port 3306 molten-album-427115-q6:us-central1:oyster1
 
+or
+./cloud-sql-proxy --port 3306 project-2-test-with-new-creds:us-central1:root
+
 If you get authenciation errors, check that you have followed all cloud steps above.
 
 Now, go into DataGrip, click + under Database Explorer, select Datasource -> mySQL -> mySQL, then user as root, password as dbuserdbuser. That should be all! In addition, running commands in the Jupyter notebook should automatically be sent to the cloud (after changing port to 3306).

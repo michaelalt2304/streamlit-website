@@ -1,3 +1,4 @@
+create database if not exists test_4;
 create schema if not exists test_4;
 use test_4;
 

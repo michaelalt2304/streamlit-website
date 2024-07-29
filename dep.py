@@ -36,16 +36,24 @@ from typing import Tuple
 temp_folder = os.path.join('.', 'Files_local')
 temp_weights = os.path.join(temp_folder, 'Weights')
 
+#################################################################
+#################################################################
+############## TO BE CHANGED ON NEW GOOGLE ACCOUNT ##############
+#################################################################
+#################################################################
+
+INSTANCE_CONNECTION_NAME = "project-2-test-with-new-creds:us-central1:root"
+BUCKET_NAME = 'tobys_bucket'
+
 #########################################
 ################ MACROS #################
 #########################################
 
-# SQL CREDENTIALS #
-INSTANCE_CONNECTION_NAME = "molten-album-427115-q6:us-central1:oyster1"  # e.g. 'project:region:instance'
-DB_USER = 'root'  # e.g. 'my-db-user'
-DB_PASS = 'dbuserdbuser'  # e.g. 'my-db-password'
-DB_NAME = 'test_4'  # e.g. 'my-database'
-###################
+# SQL CREDENTIALS DETAILS #
+DB_USER = 'root'
+DB_PASS = 'dbuserdbuser'
+DB_NAME = 'test_4'
+###########################
 
 REPLACE = 'REPLACE'
 PUBLIC_USER = 'Public'
@@ -57,8 +65,26 @@ NOTES_SIZE_LIMIT = 2048
 USERNAME_PWD_SIZE_LIMIT = 64
 GUEST = 'Guest'
 ILLEGAL_STRING_CHARS = [',', '\\', '"', '\'', ';', '(', ')', '[', ']', '{', '}']
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "./application_default_credentials.json"
-SQL_CREDENTIALS = "molten-album-427115-q6-212e6f039268.json"
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "./creds/application_default_credentials.json"
+def get_sql_creds(folder = 'creds'):
+    creds_ls = os.listdir(folder)
+
+    if len(creds_ls) > 2:
+        assert FileExistsError(f'Too many files in /{folder}. Please make sure only application_default_credentials.json and your SQL ones are there')
+    elif len(creds_ls) < 2:
+        assert FileNotFoundError(f'Not enough files in /{folder}. Please make sure both SQL sign in json and application_default_credentials are there')
+    creds_ls.remove('application_default_credentials.json')
+    if len(creds_ls) != 1:
+        assert FileNotFoundError('No file called application_default_credentials in the /creds folder.')
+    creds_path = os.path.join(folder, creds_ls[0])
+    
+
+    return creds_path
+
+
+SQL_CREDENTIALS_PATH = get_sql_creds()
+PROJECT_NAME = INSTANCE_CONNECTION_NAME.rsplit(':')[0]
+
 
 ##################################################################
 ################### STREAMLIT HELPER FUNCTIONS ###################
@@ -101,19 +127,20 @@ def show_specific_pages(is_public: bool):
 
 def show_file(id: int, table: str, _container = st):
     with st.spinner('Fetching...'):
-        if table == 'raw_files':
-            res = run_sql(f'SELECT * from {table} WHERE ID = {id}')[-1]
-        elif table == 'annotated_files':
-            res = run_sql(f"SELECT annotated_files.Filepath as Filepath, annotated_files.Local_Path as Local_Path, raw_files.Type as Type, annotated_files.Confidence_Threshold as ct from annotated_files LEFT JOIN raw_files ON annotated_files.Raw_File_ID = raw_files.ID WHERE annotated_files.ID = {id}")[-1]
-        # print("Here\n\n\n\n")
-        download_file_g(res['Filepath'], res['Local_Path'])
-        if table == 'annotated_files':
-            st.write("Confidence Threshold:", str(res['ct']) + '%')
-        # st.write(res['Filepath'])
-        if res['Type'] == 'Image':
-            _container.image(res['Local_Path'], width=500)
-        elif res['Type'] == 'Video':
-            _container.video(res['Local_Path'])
+        if id:
+            if table == 'raw_files':
+                res = run_sql(f'SELECT * from {table} WHERE ID = {id}')[-1]
+            elif table == 'annotated_files':
+                res = run_sql(f"SELECT annotated_files.Filepath as Filepath, annotated_files.Local_Path as Local_Path, raw_files.Type as Type, annotated_files.Confidence_Threshold as ct from annotated_files LEFT JOIN raw_files ON annotated_files.Raw_File_ID = raw_files.ID WHERE annotated_files.ID = {id}")[-1]
+            # print("Here\n\n\n\n")
+            download_file_g(res['Filepath'], res['Local_Path'])
+            if table == 'annotated_files':
+                st.write("Confidence Threshold:", str(res['ct']) + '%')
+            # st.write(res['Filepath'])
+            if res['Type'] == 'Image':
+                _container.image(res['Local_Path'], width=500)
+            elif res['Type'] == 'Video':
+                _container.video(res['Local_Path'])
 
 def try_page_setup(title):
     try:
@@ -193,6 +220,10 @@ def run_sql(prompt: str, write = False):
 @st.cache_resource
 def apply_ddl():    
     ddl_list = []
+
+    run_sql("create database if not exists test_4;")
+    run_sql("create schema if not exists test_4;")
+    run_sql("use test_4;")
     with open("etc/oyster_project.ddl") as f:
         for line in f:
             ddl_list.append(line[:-1])
@@ -204,10 +235,12 @@ def apply_ddl():
     table_sql = "".join(ddl_list).rsplit(';')
     procedure_sql = "\n".join(ddl_proc)
     run_sql(procedure_sql)
-
     for statement in table_sql:
         if statement:
             run_sql(statement)
+
+
+
 
 apply_ddl()
 
@@ -217,12 +250,12 @@ apply_ddl()
 ###########################
 import json
 @st.cache_resource
-def sign_in_storage_g(path_to_cred = '', JSON_file = SQL_CREDENTIALS):
+def sign_in_storage_g(path_to_cred = '', JSON_file = SQL_CREDENTIALS_PATH):
     f = open(os.path.join(path_to_cred, JSON_file))
     credentials_dict = json.load(f)
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict)
-    client = storage.Client(credentials=credentials, project='molten-album-427115-q6')
-    bkt = client.get_bucket('test_bucket_abc123')
+    client = storage.Client(credentials=credentials, project=PROJECT_NAME)
+    bkt = client.get_bucket(BUCKET_NAME)
     print("Connected to google cloud")
     return bkt, client
 
@@ -815,7 +848,7 @@ def kv_select(kvlist, label = "", reverse = False, container = st):
     KEYS = 0
     VALUES = 1
     SORTING = 2
-    if kvlist != NO_VALUES:
+    if kvlist != NO_VALUES and kvlist:
         if len(kvlist) == 2: # only keys and values
             keys_to_select = kvlist[KEYS][::-1] if reverse else kvlist[KEYS]
 
@@ -824,8 +857,6 @@ def kv_select(kvlist, label = "", reverse = False, container = st):
             keys_to_select = keys_to_select_unrev[::-1] if reverse else keys_to_select_unrev
         selected = container.selectbox(label if label else REPLACE, keys_to_select, label_visibility= 'visible' if label else 'hidden')
         return kvlist[VALUES][kvlist[KEYS].index(selected)]
-    else:
-        st.write('No values found')
 
 
 
@@ -876,6 +907,7 @@ def get_roboflow(user, public_user = True):
         st.write(f"No Roboflow details added yet for user {st.session_state.user}. Please do so on the \"Add Roboflow\" tab first.")
         return False
     return [f"{row['Workspace']} {row['Project']} v{row['Version']}, Owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res], [row['ID'] for row in res], [row['Timestamp'] for row in res]
+
 @st.cache_data
 def get_models(name, public_user = True):
     public_user_str = get_pub_str(public_user)
@@ -883,7 +915,7 @@ def get_models(name, public_user = True):
     # res = run_sql(f"SELECT * FROM roboflow INNER JOIN models ON roboflow.ID = models.Roboflow_ID WHERE (Username = '{name}'{public_user_str}) AND models.Local_Path != '{REPLACE}' AND roboflow.Api_Key != '{REPLACE}';")
     res = run_sql(f"SELECT * FROM models WHERE (Username = '{name}' {public_user_str}) AND models.Local_Path != '{REPLACE}';")
     if not res:
-        st.write(f"No models are available to user {st.session_state.user}. Please go to the \"Train Model\" tab first.")
+        st.write(f"No models are available to user {st.session_state.user}. Please go to https://github.com/michaelalt2304/oddai_website for instructions on how to add them.")
         return False
     mod_names_keys = [f"{row['Model_Type']}v{row['Version']} {row['Width_Training_Images']}x{row['Height_Training_Images']}, Owner: {row['Username']} ({row['ID']})" if not row['Notes'] else get_notes_str(row['Notes'], row['Username'], row['ID']) for row in res]
     all_mods_values = [row['ID'] for row in res]

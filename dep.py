@@ -190,7 +190,7 @@ def connect_with_connector() -> sqlalchemy.engine.base.Engine:
             "pymysql",
             user=DB_USER,
             password=DB_PASS,
-            db=DB_NAME,
+            db=DB_NAME, ##### COMMENT THIS LINE ON INITIAL SETUP, MENTIONED IN README #####
         )
         return conn
 

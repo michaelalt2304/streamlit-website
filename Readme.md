@@ -7,12 +7,12 @@ First, you will need to reinstantiate credentials with your Google account to ru
  1. Follow [this link's instructions](https://cloud.google.com/docs/authentication/application-default-credentials) with your Google account that you registered.
  1. Move the file from its local location (Windows: %APPDATA%\gcloud\application_default_credentials.json, Linux: $HOME/.config/gcloud/application_default_credentials.json) to the creds folder with the following command in a Terminal window positioned at oddai_website:
 
-        Windows Terminal - 
+   Windows Terminal - 
         copy %APPDATA%\gcloud\application_default_credentials.json  creds\
-        Windows Powershell -
+   Windows Powershell -
         copy $env:appdata/gcloud/application_default_credentials.json creds/
 
-        Linux - 
+   Linux - 
         cp $HOME/.config/gcloud/application_default_credentials.json creds/
 
  1. Go to [console](https://console.cloud.google.com/) and create a new project

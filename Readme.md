@@ -73,4 +73,5 @@ into the terminal. Once the code has run once successfully, add that line back i
 # To set up live annotation in the Cloud:
 1. Make a [Twilio login](https://www.twilio.com/)
 2. Go to Twilio Home and create a new account
-3. Access the 
+3. Access the Account Dashboard page, and copy Account SID/Auth Token into the respective fields under Initialization in dep.py
+4. Deploy and test

@@ -40,12 +40,14 @@ Go into dep.py and replace INSTANCE_CONNECTION_NAME with that string.
  1. Confirm through until you've created your bucket. Copy the name and paste into the BUCKET_NAME variable in dep.py.
 1. On a terminal positioned over the oddai_website folder, type:
 
-type this
+On All Machines
 
     pip install -r requirements.txt
 
 
-19. Remove the line for the function getconn() under connect_with_connector() that starts with db=DB_NAME. With a terminal over that folder, type
+19. Remove the line for the function getconn() under connect_with_connector() that starts with db=DB_NAME. With a terminal over that folder, type:
+
+On All Machines
 
     streamlit run Sign_In.py 
 

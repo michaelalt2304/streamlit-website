@@ -4,7 +4,7 @@ First, you will need to reinstantiate credentials with your Google account to ru
  1. Clone this repository.
  1. Create a [Google Cloud handle](https://cloud.google.com/?hl=en) for your account, enter a credit card to start the free trial. Don't worry, the $300 they give you should cover all work you need to do.
  1. Delete every file in the creds/ folder
- 1. Follow [this link's instructions](https://cloud.google.com/docs/authentication/application-default-credentials) with your Google account that you registered.
+ 1. Follow [this link's instructions](https://cloud.google.com/docs/authentication/provide-credentials-adc) with the Google account that you registered to initialize default credentials.
  1. Move the file from its local location (Windows: %APPDATA%\gcloud\application_default_credentials.json, Linux: $HOME/.config/gcloud/application_default_credentials.json) to the creds folder with the following command in a Terminal window positioned at oddai_website:
 
 Windows Terminal
@@ -38,8 +38,17 @@ Go into dep.py and replace INSTANCE_CONNECTION_NAME with that string.
 1. Continue along the setup process until you see 'Choose a storage class'. Select 'Archive' - it's more than sufficient for this purpose, and ensures no overdraft charges
 ![Image of Archive Storage Class](logos/Archive_Storage.png)
 1. Confirm through until you've created your bucket. Copy the name and paste into the BUCKET_NAME variable in dep.py.
-1. Remove the line for the function getconn() under connect_with_connector() that starts with db=DB_NAME . With a terminal over that folder, type $ streamlit run Sign_In.py into the terminal. Once the code has run once successfully, add that line back in again.
-1. All done. If everything has gone to plan, you should see the sign in page pop up on your browser, or at http://localhost:8501/ . If not, contact mjstraus2304@gmail.com for support.
+1. On a terminal positioned over the oddai_website folder, type
+
+   pip install -r requirements.txt
+
+After the first time, you will not need to include the pip command.
+1. Remove the line for the function getconn() under connect_with_connector() that starts with db=DB_NAME . With a terminal over that folder, type
+
+streamlit run Sign_In.py 
+
+into the terminal. Once the code has run once successfully, add that line back in again.
+1. All done. If everything has gone to plan, you should see the sign in page pop up on your browser, or at [http://localhost:8501/](http://localhost:8501/). If not, contact mjstraus2304@gmail.com for support.
 
 
 To access model training, on a computer with GPU (eg Linux ones in HPCL):

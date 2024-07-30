@@ -1,20 +1,22 @@
+
+## HOW TO SET UP FROM SCRATCH
 First, you will need to reinstantiate credentials with your Google account to run the website.
-0. Clone this repository.
-1. Create a [Google Cloud handle](https://cloud.google.com/?hl=en) for your account, enter a credit card to start the free trial. Don't worry, the $300 they give you should cover all work you need to do.
-2. Delete every file in the creds/ folder
-3. Follow [this link's instructions](https://cloud.google.com/docs/authentication/application-default-credentials) with your Google account that you registered.
-4. Move the file from its local location (Windows: %APPDATA%\gcloud\application_default_credentials.json, Linux: $HOME/.config/gcloud/application_default_credentials.json) to the creds folder with the following command in a Terminal window positioned at oddai_website:
+ - Clone this repository.
+ - Create a [Google Cloud handle](https://cloud.google.com/?hl=en) for your account, enter a credit card to start the free trial. Don't worry, the $300 they give you should cover all work you need to do.
+ - Delete every file in the creds/ folder
+ - Follow [this link's instructions](https://cloud.google.com/docs/authentication/application-default-credentials) with your Google account that you registered.
+ - Move the file from its local location (Windows: %APPDATA%\gcloud\application_default_credentials.json, Linux: $HOME/.config/gcloud/application_default_credentials.json) to the creds folder with the following command in a Terminal window positioned at oddai_website:
 
-Windows Terminal - 
-copy %APPDATA%\gcloud\application_default_credentials.json  creds\
-Windows Powershell -
-copy $env:appdata/gcloud/application_default_credentials.json creds/
+        Windows Terminal - 
+        copy %APPDATA%\gcloud\application_default_credentials.json  creds\
+        Windows Powershell -
+        copy $env:appdata/gcloud/application_default_credentials.json creds/
 
-Linux - 
-cp $HOME/.config/gcloud/application_default_credentials.json creds/
+        Linux - 
+        cp $HOME/.config/gcloud/application_default_credentials.json creds/
 
-5. Go to [console](https://console.cloud.google.com/) and create a new project
-6. Create a [Cloud SQL Instance](https://cloud.google.com/sql/docs/mysql/create-instance)
+ - Go to [console](https://console.cloud.google.com/) and create a new project
+ - Create a [Cloud SQL Instance](https://cloud.google.com/sql/docs/mysql/create-instance)
 7. Choose Enterprise and Sandbox mode, as shown below:
 ![MySQL options](logos/Password_Username_MySQL.png)
 8. Use MySQL version 8.0, make the root user have password dbuserdbuser

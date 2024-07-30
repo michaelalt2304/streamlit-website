@@ -28,27 +28,27 @@ Linux
  1. Create a Service Account under IAM and Admin. Give it Owner and AI Platform Service Agent roles.
     ![IAM page](logos/IAM_page.png)
     ![IAM AI Platform Service Agent](logos/AI_Platform_ServAg.png)
-1. Click on the newly created service account and go to Keys. Make one in JSON format (default)
-1. Move that file into the creds folder. Make sure you have deleted any other keys besides that and application_default_credentials.json for your account.
-1. Go back to dashboard and click on SQL. After going to your newly created project, copy the 'Connection Name'. 
+ 1. Click on the newly created service account and go to Keys. Make one in JSON format (default)
+ 1. Move that file into the creds folder. Make sure you have deleted any other keys besides that and application_default_credentials.json for your account.
+ 1. Go back to dashboard and click on SQL. After going to your newly created project, copy the 'Connection Name'. 
 ![conn_name](logos/Connection_Name.png)
 Go into dep.py and replace INSTANCE_CONNECTION_NAME with that string.
-1. Go back to the Google Cloud dashboard and select [Cloud Storage Buckets](https://console.cloud.google.com/storage/)
-1. Click on 'Create' and give it a unique name.
-1. Continue along the setup process until you see 'Choose a storage class'. Select 'Archive' - it's more than sufficient for this purpose, and ensures no overdraft charges
+ 1. Go back to the Google Cloud dashboard and select [Cloud Storage Buckets](https://console.cloud.google.com/storage/)
+ 1. Click on 'Create' and give it a unique name.
+ 1. Continue along the setup process until you see 'Choose a storage class'. Select 'Archive' - it's more than sufficient for this purpose, and ensures no overdraft charges
 ![Image of Archive Storage Class](logos/Archive_Storage.png)
-1. Confirm through until you've created your bucket. Copy the name and paste into the BUCKET_NAME variable in dep.py.
-1. On a terminal positioned over the oddai_website folder, type
+ 1. Confirm through until you've created your bucket. Copy the name and paste into the BUCKET_NAME variable in dep.py.
+ 1. On a terminal positioned over the oddai_website folder, type
 
-   pip install -r requirements.txt
+    pip install -r requirements.txt
 
 After the first time, you will not need to include the pip command.
-1. Remove the line for the function getconn() under connect_with_connector() that starts with db=DB_NAME . With a terminal over that folder, type
+19. Remove the line for the function getconn() under connect_with_connector() that starts with db=DB_NAME . With a terminal over that folder, type
 
 streamlit run Sign_In.py 
 
 into the terminal. Once the code has run once successfully, add that line back in again.
-1. All done. If everything has gone to plan, you should see the sign in page pop up on your browser, or at [http://localhost:8501/](http://localhost:8501/). If not, contact mjstraus2304@gmail.com for support.
+20. All done. If everything has gone to plan, you should see the sign in page pop up on your browser, or at [http://localhost:8501/](http://localhost:8501/). If not, contact mjstraus2304@gmail.com for support.
 
 
 To access model training, on a computer with GPU (eg Linux ones in HPCL):

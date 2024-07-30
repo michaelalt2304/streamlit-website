@@ -43,10 +43,12 @@ Go into dep.py and replace INSTANCE_CONNECTION_NAME with that string.
 
     pip install -r requirements.txt
 
-After the first time, you will not need to include the pip command.
-19. Remove the line for the function getconn() under connect_with_connector() that starts with db=DB_NAME . With a terminal over that folder, type
 
-streamlit run Sign_In.py 
+After the first time, you will not need to include the pip command.
+
+19. Remove the line for the function getconn() under connect_with_connector() that starts with db=DB_NAME. With a terminal over that folder, type
+
+    streamlit run Sign_In.py 
 
 into the terminal. Once the code has run once successfully, add that line back in again.
 20. All done. If everything has gone to plan, you should see the sign in page pop up on your browser, or at [http://localhost:8501/](http://localhost:8501/). If not, contact mjstraus2304@gmail.com for support.

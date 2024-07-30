@@ -36,14 +36,17 @@ from typing import Tuple
 temp_folder = os.path.join('.', 'Files_local')
 temp_weights = os.path.join(temp_folder, 'Weights')
 
-#################################################################
-#################################################################
-############## TO BE CHANGED ON NEW GOOGLE ACCOUNT ##############
-#################################################################
-#################################################################
+#############################################################
+#############################################################
+############## TO BE CHANGED ON INITIALIZATION ##############
+#############################################################
+#############################################################
 
 INSTANCE_CONNECTION_NAME = "project-2-test-with-new-creds:us-central1:root"
 BUCKET_NAME = 'tobys_bucket'
+
+TWILIO_ACCOUNT_SID = 'AC96566f955b99b80802ecb8a9fc4762c9'
+TWILIO_AUTH_TOKEN = '66f99cdad98de8a2a9aab410fe8c1efc'
 
 #########################################
 ################ MACROS #################
@@ -337,6 +340,19 @@ def make_folder_g(folder_name, bkt = b):
 def path_exists_g(file, bkt = b):
     blob = bkt.blob(file)
     return blob.exists()
+
+################
+# TWILIO SETUP #
+################
+@st.cache_resource
+def get_twilio(TWILIO_ACCOUNT_SID = TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN = TWILIO_AUTH_TOKEN):
+    TWIL_CLIENT = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+    TWIL_TOKEN = TWIL_CLIENT.tokens.create()
+    return TWIL_TOKEN
+TWIL_TOKEN = get_twilio()
+
+
+
 ###############################
 # LOCAL FILE HELPER FUNCTIONS #
 ###############################

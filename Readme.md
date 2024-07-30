@@ -1,5 +1,5 @@
 
-## HOW TO SET UP FROM SCRATCH
+## How To Set Up From Scratch
 First, you will need to reinstantiate credentials with your Google account to run the website.
  1. Clone this repository.
  1. Create a [Google Cloud handle](https://cloud.google.com/?hl=en) for your account, enter a credit card to start the free trial. Don't worry, the $300 they give you should cover all work you need to do.
@@ -56,15 +56,21 @@ into the terminal. Once the code has run once successfully, add that line back i
 20. All done. If everything has gone to plan, you should see the sign in page pop up on your browser, or at [http://localhost:8501/](http://localhost:8501/). If not, contact mjstraus2304@gmail.com for support.
 
 
-To access model training, on a computer with GPU (eg Linux ones in HPCL):
+# To access model training, on a computer with GPU (eg Linux ones in HPCL):
 1. Navigate to oddai_website on terminal
 2. Run $ pip install -r requirements.txt
 3. Run $ streamlit run Sign_In.py
-4. On the opening page, use username = Public, password = Franklin2304!
+4. On the opening page, use username = Public, password = <something recognizable>
 5. Go to Add Roboflow and Train Models tabs that appear on sidebar
 
-To deploy/make publically accessible:
+
+# To deploy/make publically accessible:
 1. [Fork this repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
 2. Put $ streamlit run Sign_In.py into the console
 3. Click on Deploy in the upper right hand corner
 4. Follow the steps and wait. Should work, but if not you can also look into [Google Cloud Run](https://cloud.google.com/run/) and Docker containers (the Dockerfile is already in the repo from previous attempts). Common issues involve requirements.txt, so make sure all package versions are workable. The Live Annotation feature is very fragile, so you may want to swap that out.
+
+# To set up live annotation in the Cloud:
+1. Make a [Twilio login](https://www.twilio.com/)
+2. Go to Twilio Home and create a new account
+3. Access the 

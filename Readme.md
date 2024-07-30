@@ -22,7 +22,7 @@ Linux
  6. Go to [console](https://console.cloud.google.com/) and create a new project
  1. Create a [Cloud SQL Instance](https://cloud.google.com/sql/docs/mysql/create-instance)
  1. Choose Enterprise and Sandbox mode, as shown below:
-    ![MySQL options](logos/Password_Username_MySQL.png)
+    ![MySQL options](logos/Options_For_MySQL.png)
  1.  Use MySQL version 8.0, make the root user have password dbuserdbuser
     ![Password Username Setup](logos/Password_Username_MySQL.png)
  1. Create a Service Account under IAM and Admin. Give it Owner and AI Platform Service Agent roles.

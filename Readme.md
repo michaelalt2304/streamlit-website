@@ -38,7 +38,7 @@ Go into dep.py and replace INSTANCE_CONNECTION_NAME with that string.
  1. Continue along the setup process until you see 'Choose a storage class'. Select 'Archive' - it's more than sufficient for this purpose, and ensures no overdraft charges
 ![Image of Archive Storage Class](logos/Archive_Storage.png)
  1. Confirm through until you've created your bucket. Copy the name and paste into the BUCKET_NAME variable in dep.py.
- 1. On a terminal positioned over the oddai_website folder, type
+1. On a terminal positioned over the oddai_website folder, type:
 
     pip install -r requirements.txt
 

@@ -3,10 +3,8 @@ from dep import *
 
 
 
-account_sid = 'AC96566f955b99b80802ecb8a9fc4762c9' # os.environ['TWILIO_ACCOUNT_SID']
-auth_token = '66f99cdad98de8a2a9aab410fe8c1efc' # os.environ['TWILIO_AUTH_TOKEN']
-twil_client = Client(account_sid, auth_token)
-token = twil_client.tokens.create()
+
+
 
 
 try_page_setup("Live Annotation")
@@ -25,5 +23,4 @@ if models:
         img_pil = Image.fromarray(np_flip)
         final_np, _, _, _ = ann_img_helper(img_pil, model_YOLO, conf_level = threshold / 100)
         return av.VideoFrame.from_ndarray(final_np, format="bgr24")
-    webrtc_streamer(key="example", video_frame_callback=vfc, rtc_configuration={"iceServers": token.ice_servers})
-    # webrtc_streamer(key="abc123", rtc_configuration={"iceServers": token.ice_servers}) # COMMENT OUT THIS LINE, UNCOMMENT ABOVE
+    webrtc_streamer(key="example", video_frame_callback=vfc, rtc_configuration={"iceServers": TWIL_TOKEN.ice_servers})

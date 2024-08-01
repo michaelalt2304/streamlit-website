@@ -1,4 +1,4 @@
-For reposotory https://github.com/michaelalt2304/oddai_website (ask mjstraus2304@gmail.com for permission to access first)
+For repository https://github.com/michaelalt2304/oddai_website (ask mjstraus2304@gmail.com for permission to access first)
 ## How To Set Up From Scratch
 First, you will need to reinstantiate credentials with your Google account to run the website.
  1. Clone this repository.

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "molten-album-427115-q6",
+  "private_key_id": "c9415413d75e80f5b48e162656cb2a83c1918171",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC4tYIWT4Fy02sr\nHOTS8uH0eWUeEyPtXCyeRh1H2i+nD6wVsH84d7CID2Z0AE0vz3eIqkchRRT750nN\nIJF/Tyq2ijo363t0fnkC7tlwL/JYDoUYpaeLXyh9u/8Y9QsiSmC7xULY48sIomgK\nP0mbzEylQiD5hqoWO1UrvhjaibggXSWWA5ARPuY4OK5a9+Ps6o4j/NiIceRVmSc6\nF2TnEYLyuiKX1n8OM87Gwfm5QF5Xaqg8lBKsZzAV7U6ISjRs8ryLnQ21yU+hELuF\nybeHMR0Vj++YrwpQyOebj7gmhf8P+k2xBoofZpzr5UPVDPVnLo4DlVa+ssi+BmDl\nFAYRY3ZRAgMBAAECggEAJGYaXlCpGwpoKE0Pl7VmyyFACLLvZcdAAKmi/AWWVebb\n+8M18tf9SPa18x6bF1ScQumBTmBZcAGmVL66BVtBuMqZCeuE/tIsgSQ146qDKJCl\n8FM2ptun9E0filjBqq57DQ2krG6JVGiCtaA+nm3eXcOgEWQU8QAcutvBdJFmoDO9\nImm3vrtau66+09e8cPAp46EAfwDILRNrWXk8m8WjAQSAMk6e677p87IsvJu+vkLJ\n0XvaNtamvzfur9nNWV22E4kmZJX5OuQMUHTcGE+eCyVa0Vl1SpKWZHV5DgvgZkJF\n4AS4IPt92/Y9KAwuExgOPjqnCGp4EfttpNC1kgL19QKBgQDhPInqDYSha3Sotswf\nlWQeQp6f1j7HHDJg9ie9niQc8YPPqEA1jlxiB4G+ThqX0e64k4bnC+HPwUiJ2gCt\nRSU5u/3OdyxAqcspJG3xJBOS9TF6of/kDLjtc6fws1WOXTDkg0RYizFkcveHgg0o\nawSs9NhDZWmyDM8WGSrVPRX/HQKBgQDR7+obbtSZMUt/UFJGq4erYEmUOvuc9kBl\nINqbAn5tgmYi1LtBkXJtIGCtdeRAOGUD29zOF3y3mxftg5rmQ7TX4ONDgvktI1xn\nLC1Bhlw0pwYazD/D5GR69dJzNbOqNw11SM3hhcjnoMjN6nCaHtrgKjWa1TMYmJ3V\n2uJ1WHypxQKBgQCjbergMljXS4IFXUX1cM+JiWtRrQI2NUZ0xoeFdbbcbX3n8jxM\n3/Q2iR3iOQfgu0oNEbaj9SIvPh7lL5KoJvDg2IBMDHrGnK02OCGyBCxTyKfTRLLJ\nBVY1rWLhKy7cMtBkLr8rxCvdp/HlmD714dktqic1l+M+dz7X2QEUYtOQHQKBgQCG\nouRyv3tc275dYffCFtOlVtUZWVJwcYUO1ikcbFcEiDJUeDW3cT3/OlqGJCtD/Gbc\nOK69BVcYsUCBNHus3RMnt7RIYcDH7/uctzo24aJUqiFCImdqjBjcurZC6NfWfAQH\nia9vyMr1sanWVVntnYglZyyFpeFlDst6kSvWse8ROQKBgQCWFcmAuP4DA3GnrL0e\niqkcNaQ6BNBzpQFXaJOT0bDvXP0VhqGbQr4aCUsonkQ2tjGzxGwsC+JtN2cYNUgO\n1ry6LvDNl3IkBWeZco5qmCn55bWik/hG7cOBP7CAaB8IQsGrDZJ2+Cev1ZbKX0cV\n+qTvMoMtbii/GZ7KQFtldwej1A==\n-----END PRIVATE KEY-----\n",
+  "client_email": "sa-3-oddai@molten-album-427115-q6.iam.gserviceaccount.com",
+  "client_id": "115109921901006341066",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/sa-3-oddai%40molten-album-427115-q6.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

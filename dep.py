@@ -43,7 +43,7 @@ temp_weights = os.path.join(temp_folder, 'Weights')
 #############################################################
 
 INSTANCE_CONNECTION_NAME = "project-2-test-with-new-creds:us-central1:root"
-BUCKET_NAME = 'tobys_bucket'
+BUCKET_NAME = 'test_bucket_abc123'
 
 TWILIO_ACCOUNT_SID = 'AC3c21d8155ce4c846c100538c46155bd3'
 TWILIO_AUTH_TOKEN = 'c088b0c064e18ef03ec0f9a658c837af'
